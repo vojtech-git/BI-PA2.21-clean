@@ -12,25 +12,33 @@ This section describes how to build this project on your own.
    winget install --id Kitware.CMake -e
    winget install --id Microsoft.VisualStudio.2022.BuildTools --force --override "--passive --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
 ```
-2. Open the Developer Command Prompt for VS 2022.
-3. Download and compile PDCurses:
+2. Open the "x64 Native Tools Command Prompt for VS 2022" from the Windows Start menu (do not use the standard Developer Command Prompt/PowerShell).
+3. Navigate to your Documents folder, download, and compile the 64-bit PDCurses library:
 ```
+   cd %USERPROFILE%\Documents
    git clone https://github.com/wmcbrine/PDCurses.git
    cd PDCurses\wincon
    nmake -f Makefile.vc
 ```
-4. Setup library paths:
+4. Setup library paths and copy the compiled files:
 ```
-   Create C:\pdcurses\include and copy curses.h from the PDCurses root folder.
-   Create C:\pdcurses\lib and copy pdcurses.lib from the wincon folder.
+   mkdir C:\pdcurses\include
+   mkdir C:\pdcurses\lib
+   copy %USERPROFILE%\Documents\PDCurses\curses.h C:\pdcurses\include\
+   copy %USERPROFILE%\Documents\PDCurses\wincon\pdcurses.lib C:\pdcurses\lib\
 ```
-6. Extract BI-PA2.21-clean.zip and navigate into the project root.
-7. Configure and build the project:
+5. Navigate back to your Documents folder, clone the project repository, and navigate into it:
+```
+   cd %USERPROFILE%\Documents
+   git clone <your-repo-url> BI-PA2.21-clean
+   cd BI-PA2.21-clean
+```
+6. Configure and build the project:
 ```
    cmake -B build -S .
    cmake --build build
 ```
-8. Run the executable:
+7. Run the executable:
 ```
    .\build\Debug\CleanBomberman.exe
 ```
