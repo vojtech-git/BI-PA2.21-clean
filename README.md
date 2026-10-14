@@ -30,7 +30,7 @@ This section describes how to build this project on your own.
 5. Navigate back to your Documents folder, clone the project repository, and navigate into it:
 ```
    cd %USERPROFILE%\Documents
-   git clone <your-repo-url> BI-PA2.21-clean
+   git clone https://github.com/vojtech-git/BI-PA2.21-clean
    cd BI-PA2.21-clean
 ```
 6. Configure and build the project:
