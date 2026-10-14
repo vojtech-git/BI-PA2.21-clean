@@ -5,8 +5,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(WIN32)
-    find_package(unofficial-pdcurses CONFIG REQUIRED)
-    add_library(Curses::Curses ALIAS unofficial::pdcurses::pdcurses)
+    add_library(Curses::Curses STATIC IMPORTED)
+    set_target_properties(Curses::Curses PROPERTIES
+        IMPORTED_LOCATION "C:/pdcurses/lib/pdcurses.lib"
+        INTERFACE_INCLUDE_DIRECTORIES "C:/pdcurses/include"
+    )
 else()
     set(CURSES_NEED_NCURSES TRUE)
     set(CURSES_NEED_WIDE TRUE)
