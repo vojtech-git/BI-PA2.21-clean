@@ -1,0 +1,18 @@
+flameChance 1
+frozenChance 1
+levitationChance 1
+delayChance 1
+healthChance 1
+map 10 20
+                    
+  #   #   #   #   # 
+ ### ### ### ### ###
+  #G  #   #   #   # 
+  =   = GGG   =     
+  #   #  =# = #   # 
+ ###=### ###D###=###
+  #   #   #   #  =# 
+  =   =             
+  #   #   #   #   # 
+1 1 name1 w a s d f
+0 0 name2 i j k l h

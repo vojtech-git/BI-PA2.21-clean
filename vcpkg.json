@@ -1,0 +1,14 @@
+{
+  "name": "curses-game",
+  "version-string": "0.1.0",
+  "dependencies": [
+    {
+      "name": "pdcurses",
+      "platform": "windows"
+    },
+    {
+      "name": "ncurses",
+      "platform": "!windows"
+    }
+  ]
+}
