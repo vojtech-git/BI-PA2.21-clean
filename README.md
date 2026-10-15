@@ -45,27 +45,26 @@ This section describes how to build this project on your own.
 
    ### Ubuntu
 
-1. Install the base compilation tools:
+1. Install build tools, git, and ncurses development files:
 ```
-   sudo apt update
-   sudo apt install build-essential cmake wget tar
+sudo apt update
+sudo apt install -y build-essential cmake git libncurses-dev
 ```
-2. Download and compile ncurses from source:
+
+2. Clone the project repository and navigate into it:
 ```
-   wget https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.4.tar.gz
-   tar -xzf ncurses-6.4.tar.gz
-   cd ncurses-6.4
-   ./configure --with-shared
-   make
-   sudo make install
+cd ~
+git clone https://github.com/vojtech-git/BI-PA2.21-clean.git
+cd BI-PA2.21-clean
 ```
-3. Extract BI-PA2.21-clean.zip and navigate into the project root.
-4. Configure and build the project:
+
+3. Configure and build the project:
 ```
-   cmake -B build -S .
-   cmake --build build
+cmake -B build -S .
+cmake --build build
 ```
-5. Run the executable:
+
+4. Run the executable:
 ```
-   ./build/CleanBomberman
+./build/CleanBomberman
 ```
