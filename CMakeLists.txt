@@ -13,7 +13,16 @@ if(WIN32)
 else()
     set(CURSES_NEED_NCURSES TRUE)
     set(CURSES_NEED_WIDE TRUE)
+    set(CURSES_USE_STATIC_LIBS TRUE)
     find_package(Curses REQUIRED)
+
+    add_library(Curses::Curses INTERFACE IMPORTED)
+    set_target_properties(Curses::Curses PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
+        INTERFACE_LINK_LIBRARIES "${CURSES_LIBRARIES}"
+    )
+
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 endif()
 
 file(GLOB_RECURSE DOMAIN_SOURCES       CONFIGURE_DEPENDS "src/domain/*.cpp")
