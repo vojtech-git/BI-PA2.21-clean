@@ -2,15 +2,26 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch (Linux)",
-      "type": "cppdbg",
+      "name": "Launch (Windows MSVC)",
+      "type": "cppvsdbg",
       "request": "launch",
-      "program": "${command:cmake.launchTargetPath}",
+      "program": "${workspaceFolder}/build/Debug/CleanBomberman.exe",
       "args": [],
       "stopAtEntry": false,
-      "cwd": "${command:cmake.launchTargetDirectory}",
+      "cwd": "${workspaceFolder}/build/Debug",
       "environment": [],
-      "externalConsole": true,
+      "console": "externalTerminal"
+    },
+    {
+      "name": "Launch (Linux GDB)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/CleanBomberman",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build",
+      "environment": [],
+      "externalConsole": false,
       "MIMode": "gdb",
       "setupCommands": [
         {
@@ -19,17 +30,6 @@
           "ignoreFailures": true
         }
       ]
-    },
-    {
-      "name": "Launch (Windows)",
-      "type": "cppvsdbg",
-      "request": "launch",
-      "program": "${command:cmake.launchTargetPath}",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${command:cmake.launchTargetDirectory}",
-      "environment": [],
-      "console": "externalTerminal"
     }
   ]
 }
