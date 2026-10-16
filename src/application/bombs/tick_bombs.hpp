@@ -5,6 +5,7 @@
 #include "application/maps/map_store.hpp"
 #include "application/walls/wall_store.hpp"
 #include "application/players/player_store.hpp"
+#include "application/ghosts/ghost_store.hpp"
 #include "application/smokes/smoke_store.hpp"
 #include "application/bombs/bomb_presenter.hpp"
 #include "application/bonuses/bonus_store.hpp"
@@ -17,6 +18,7 @@ public:
         MapStore &map_store,
         WallStore &wall_store,
         PlayerStore &player_store,
+        GhostStore &ghost_store,
         SmokeStore &smoke_store,
         BonusStore &bonus_store,
         BombPresenter &presenter,
@@ -33,6 +35,7 @@ private:
     MapStore &map_store_;
     WallStore &wall_store_;
     PlayerStore &player_store_;
+    GhostStore &ghost_store_;
     SmokeStore &smoke_store_;
     BonusStore &bonus_store_;
     BombPresenter &presenter_;

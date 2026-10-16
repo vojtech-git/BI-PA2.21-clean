@@ -13,6 +13,7 @@ public:
     void PresentSmokeRemoved(size_t x, size_t y) override;
     void PresentPlayerDamaged(int player_id, int new_health) override;
     void PresentPlayerDied(int player_id, size_t x, size_t y) override;
+    void PresentGhostDied(size_t x, size_t y) override;
 
 private:
     BoardView &board_view_;

@@ -72,13 +72,6 @@ float Player::GetBombCooldown() const {
     return bomb_cooldown_;
 }
 
-void Player::TakeDamage(int damage) {
-    health_ -= damage;
-    if (health_ < 0) {
-        health_ = 0;
-    }
-}
-
 bool Player::IsDead() const {
     return health_ <= 0;
 }
@@ -89,4 +82,27 @@ void Player::AddHealth(int amount) {
 
 void Player::ReduceBombCooldown(float amount) {
     bomb_cooldown_ = std::max(0.5f, bomb_cooldown_ - amount);
+}
+
+void Player::TakeDamage(int damage) {
+    if (IsInvulnerable() || IsDead()) {
+        return;
+    }
+    health_ -= damage;
+    if (health_ < 0) {
+        health_ = 0;
+    }
+    if (!IsDead()) {
+        invulnerability_timer_ = 2.0f;
+    }
+}
+
+bool Player::IsInvulnerable() const {
+    return invulnerability_timer_ > 0.0f;
+}
+
+void Player::UpdateInvulnerability(float dt) {
+    if (invulnerability_timer_ > 0.0f) {
+        invulnerability_timer_ = std::max(0.0f, invulnerability_timer_ - dt);
+    }
 }

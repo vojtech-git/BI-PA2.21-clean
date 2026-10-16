@@ -7,6 +7,7 @@ void TickPlayers::Execute(float dt) {
     for (auto &player : player_store_.GetAllMutable()) {
         if (!player.IsDead()) {
             player.UpdateCooldown(dt);
+            player.UpdateInvulnerability(dt);
         }
     }
 }

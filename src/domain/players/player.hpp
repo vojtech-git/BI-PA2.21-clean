@@ -18,6 +18,8 @@ public:
     bool IsDead() const;
     void AddHealth(int amount);
     void ReduceBombCooldown(float amount);
+    bool IsInvulnerable() const;
+    void UpdateInvulnerability(float dt);
 
     size_t GetX() const;
     size_t GetY() const;
@@ -35,4 +37,5 @@ private:
     size_t explosion_size_;
     float frozen_timer_;
     float levitation_timer_;
+    float invulnerability_timer_{0.0f};
 };

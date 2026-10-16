@@ -6,6 +6,7 @@ TickBombs::TickBombs(
     MapStore &map_store,
     WallStore &wall_store,
     PlayerStore &player_store,
+    GhostStore &ghost_store,
     SmokeStore &smoke_store,
     BonusStore &bonus_store,
     BombPresenter &presenter,
@@ -14,6 +15,7 @@ TickBombs::TickBombs(
     map_store_(map_store),
     wall_store_(wall_store),
     player_store_(player_store),
+    ghost_store_(ghost_store),
     smoke_store_(smoke_store),
     bonus_store_(bonus_store),
     presenter_(presenter),
@@ -49,6 +51,10 @@ void TickBombs::CheckDamageTile(size_t x, size_t y) {
                 presenter_.PresentPlayerDamaged(player_id, p.GetHealth());
             }
         }
+    }
+
+    while (ghost_store_.RemoveAt(x, y)) {
+        presenter_.PresentGhostDied(x, y);
     }
 }
 

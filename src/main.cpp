@@ -32,6 +32,10 @@
 #include "presentation/bonuses/curses_bonus_presenter.hpp"
 #include "application/bonuses/bonus_store.hpp"
 #include "application/bonuses/collect_bonuses.hpp"
+#include "presentation/ghosts/curses_ghost_presenter.hpp"
+#include "application/ghosts/move_ghosts.hpp"
+#include "presentation/ghosts/curses_ghost_collision_presenter.hpp"
+#include "application/ghosts/check_ghost_collision.hpp"
 #include <chrono>
 #include <thread>
 
@@ -67,6 +71,8 @@ int main() {
     CursesPlayerPresenter player_presenter(board_view);
     CursesBombPresenter bomb_presenter(board_view, hud_view);
     CursesBonusPresenter bonus_presenter(board_view, hud_view);
+    CursesGhostPresenter ghost_presenter(board_view);
+    CursesGhostCollisionPresenter ghost_collision_presenter(board_view, hud_view);
 
     // Use cases
     NavigateToLeaderboard navigate_to_leaderboard(leaderboard_repo, leaderboard_presenter);
@@ -75,9 +81,21 @@ int main() {
     CollectBonuses collect_bonuses(player_store, bonus_store, bonus_presenter);
     MovePlayer move_player(player_store, map_store, wall_store, bomb_store, collect_bonuses, player_presenter);
     PlaceBomb place_bomb(player_store, bomb_store, bomb_presenter);
-    TickBombs tick_bombs(bomb_store, map_store, wall_store, player_store, smoke_store, bonus_store, bomb_presenter, bonus_presenter);
+    TickBombs tick_bombs(
+        bomb_store,
+        map_store,
+        wall_store,
+        player_store,
+        ghost_store,
+        smoke_store,
+        bonus_store,
+        bomb_presenter,
+        bonus_presenter
+    );    
     TickSmokes tick_smokes(smoke_store, bomb_presenter);
     TickPlayers tick_players(player_store);
+    MoveGhosts move_ghosts(ghost_store, map_store, wall_store, bomb_store, ghost_presenter);
+    CheckGhostCollision check_ghost_collision(player_store, ghost_store, ghost_collision_presenter);
 
 
     StartGame start_game(
@@ -97,9 +115,11 @@ int main() {
 
     // Register Tick Hooks
     router.RegisterTick(AppState::Game, [&](float dt) {
-    tick_players.Execute(dt);
-    tick_bombs.Execute(dt);
-    tick_smokes.Execute(dt);
+        tick_players.Execute(dt);
+        tick_bombs.Execute(dt);
+        tick_smokes.Execute(dt);
+        move_ghosts.Execute(dt);
+        check_ghost_collision.Execute();
     });
 
     // --- Main Menu Bindings ---

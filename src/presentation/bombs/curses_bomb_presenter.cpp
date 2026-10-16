@@ -31,3 +31,7 @@ void CursesBombPresenter::PresentPlayerDied(int player_id, size_t x, size_t y) {
     board_view_.RemoveEntity(x, y, EntityVisualLayer::Player);
     hud_view_.UpdatePlayerHealth(player_id, 0);
 }
+
+void CursesBombPresenter::PresentGhostDied(size_t x, size_t y) {
+    board_view_.RemoveEntity(x, y, EntityVisualLayer::Ghost);
+}
