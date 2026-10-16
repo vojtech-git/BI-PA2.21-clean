@@ -68,5 +68,12 @@ target_link_libraries(CleanBomberman PRIVATE
     presentation
 )
 
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/maps" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/leaderboards" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+add_custom_command(TARGET CleanBomberman POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/maps"
+        "$<TARGET_FILE_DIR:CleanBomberman>/maps"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/leaderboards"
+        "$<TARGET_FILE_DIR:CleanBomberman>/leaderboards"
+    COMMENT "Copying maps and leaderboards to build output directory..."
+)
