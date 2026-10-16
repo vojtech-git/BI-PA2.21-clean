@@ -75,19 +75,14 @@ int main()
 
     // --- Main Menu Bindings ---
     router.BindKey(AppState::MainMenu, 'p', [&]() { start_game.Execute(); });
-    router.BindKey(AppState::MainMenu, 'P', [&]() { start_game.Execute(); });
     router.BindKey(AppState::MainMenu, 'l', [&]() { navigate_to_leaderboard.Execute(); });
-    router.BindKey(AppState::MainMenu, 'L', [&]() { navigate_to_leaderboard.Execute(); });
     router.BindKey(AppState::MainMenu, 'm', [&]() { navigate_to_map_select.Execute(); });
-    router.BindKey(AppState::MainMenu, 'M', [&]() { navigate_to_map_select.Execute(); });
     router.BindKey(AppState::MainMenu, 'q', [&]() { running = false; });
-    router.BindKey(AppState::MainMenu, 'Q', [&]() { running = false; });
 
     // --- Leaderboard Bindings ---
     router.BindKey(AppState::Leaderboard, KEY_LEFT, [&]() { leaderboard_presenter.ChangePage(-1); });
     router.BindKey(AppState::Leaderboard, KEY_RIGHT, [&]() { leaderboard_presenter.ChangePage(1); });
     router.BindKey(AppState::Leaderboard, 'q', [&]() { main_menu_presenter.PresentMainMenu(); });
-    router.BindKey(AppState::Leaderboard, 'Q', [&]() { main_menu_presenter.PresentMainMenu(); });
 
     // --- Map Select Bindings ---
     router.BindKey(AppState::MapSelect, KEY_LEFT, [&]() { map_select_presenter.ChangePage(-1); });
@@ -104,11 +99,9 @@ int main()
     router.BindKey(AppState::MapSelect, '3', [&]() { handle_slot_selection(2); });
     router.BindKey(AppState::MapSelect, '4', [&]() { handle_slot_selection(3); });
     router.BindKey(AppState::MapSelect, 'q', [&]() { main_menu_presenter.PresentMainMenu(); });
-    router.BindKey(AppState::MapSelect, 'Q', [&]() { main_menu_presenter.PresentMainMenu(); });
 
     // --- In-Game Bindings ---
     router.BindKey(AppState::Game, 'q', [&]() { main_menu_presenter.PresentMainMenu(); });
-    router.BindKey(AppState::Game, 'Q', [&]() { main_menu_presenter.PresentMainMenu(); });
 
     main_menu_presenter.PresentMainMenu();
 
