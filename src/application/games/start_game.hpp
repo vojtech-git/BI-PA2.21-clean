@@ -1,5 +1,4 @@
 #pragma once
-
 #include "application/maps/map_repository.hpp"
 #include "application/maps/map_store.hpp"
 #include "application/walls/wall_store.hpp"
@@ -8,7 +7,7 @@
 #include "application/doors/door_store.hpp"
 #include "application/input/keybind_service.hpp"
 #include "application/players/move_player.hpp"
-#include "game_presenter.hpp"
+#include "game_start_presenter.hpp"
 
 class StartGame {
 public:
@@ -21,9 +20,8 @@ public:
         DoorStore &door_store,
         KeybindService &keybind_service,
         MovePlayer &move_player,
-        GamePresenter &presenter
+        GameStartPresenter &presenter
     );
-
     void Execute();
 
 private:
@@ -38,5 +36,5 @@ private:
     DoorStore &door_store_;
     KeybindService &keybind_service_;
     MovePlayer &move_player_;
-    GamePresenter &presenter_;
+    GameStartPresenter &presenter_;
 };

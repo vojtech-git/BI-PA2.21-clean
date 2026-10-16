@@ -1,5 +1,4 @@
 #pragma once
-
 #include "domain/maps/map.hpp"
 #include "domain/walls/wall.hpp"
 #include "domain/players/player.hpp"
@@ -9,17 +8,15 @@
 #include <vector>
 #include <optional>
 
-class GamePresenter {
+class GameStartPresenter {
 public:
-    virtual ~GamePresenter() = default;
-
-    virtual void SetHudConfig(const GameHudConfig &config) = 0;
-
-    virtual void PresentGame(
+    virtual ~GameStartPresenter() = default;
+    virtual void PresentGameStart(
         const Map &map,
         const std::vector<Wall> &walls,
         const std::vector<Player> &players,
         const std::vector<Ghost> &ghosts,
-        const std::optional<Door> &door
+        const std::optional<Door> &door,
+        const GameHudConfig &hud_config
     ) = 0;
 };
