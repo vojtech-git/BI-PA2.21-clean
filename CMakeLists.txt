@@ -4,24 +4,21 @@ project(CleanBomberman CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(WIN32)
-    add_library(Curses::Curses STATIC IMPORTED)
-    set_target_properties(Curses::Curses PROPERTIES
-        IMPORTED_LOCATION "C:/pdcurses/lib/pdcurses.lib"
-        INTERFACE_INCLUDE_DIRECTORIES "C:/pdcurses/include"
-    )
-else()
-    set(CURSES_NEED_NCURSES TRUE)
-    set(CURSES_NEED_WIDE TRUE)
-    set(CURSES_USE_STATIC_LIBS TRUE)
-    find_package(Curses REQUIRED)
+set(CURSES_NEED_NCURSES TRUE)
+set(CURSES_NEED_WIDE TRUE)
+find_package(Curses REQUIRED)
 
+if(NOT TARGET Curses::Curses)
     add_library(Curses::Curses INTERFACE IMPORTED)
     set_target_properties(Curses::Curses PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
         INTERFACE_LINK_LIBRARIES "${CURSES_LIBRARIES}"
     )
+endif()
 
+if(WIN32)
+    add_compile_definitions(PDC_WIDE)
+else()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 endif()
 
