@@ -6,115 +6,53 @@ This section describes how to build this project on your own.
 
 ### Windows
 
-1. Open PowerShell as Administrator and install the required build tools and utilities:
+1. Install Prerequisites. Open PowerShell as Administrator and run:
 ```
    winget install --id Git.Git -e
    winget install --id Kitware.CMake -e
    winget install --id Microsoft.VisualStudio.2022.BuildTools --force --override "--passive --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
 ```
-2. Open the "x64 Native Tools Command Prompt for VS 2022" from the Windows Start menu (do not use the standard Developer Command Prompt/PowerShell).
-3. Navigate to your Documents folder, download, and compile the 64-bit PDCurses library:
-```
-   cd %USERPROFILE%\Documents
-   git clone https://github.com/wmcbrine/PDCurses.git
-   cd PDCurses\wincon
-   nmake -f Makefile.vc
-```
-4. Setup library paths and copy the compiled files:
-```
-   mkdir C:\pdcurses\include
-   mkdir C:\pdcurses\lib
-   copy %USERPROFILE%\Documents\PDCurses\curses.h C:\pdcurses\include\
-   copy %USERPROFILE%\Documents\PDCurses\wincon\pdcurses.lib C:\pdcurses\lib\
-```
-5. Navigate back to your Documents folder, clone the project repository, and navigate into it:
-```
-   cd %USERPROFILE%\Documents
-   git clone https://github.com/vojtech-git/BI-PA2.21-clean
-   cd BI-PA2.21-clean
-```
-6. Configure and build the project:
-```
-   cmake -B build -S .
-   cmake --build build
-```
-7. Run the executable:
-```
-   .\build\Debug\CleanBomberman.exe
-```
-
-   ### Ubuntu
-
-1. Install build tools, git, and ncurses development files:
-```
-sudo apt update
-sudo apt install -y build-essential cmake git libncurses-dev
-```
-
-2. Clone the project repository and navigate into it:
-```
-cd ~
-git clone https://github.com/vojtech-git/BI-PA2.21-clean.git
-cd BI-PA2.21-clean
-```
-
-3. Configure and build the project:
-```
-cmake -B build -S .
-cmake --build build
-```
-
-4. Run the executable:
-```
-./build/CleanBomberman
-```
-
-
-## ALT
-
-### Windows
-
-1. Install Prerequisites:
-   Open PowerShell as Administrator and run:
-   winget install --id Git.Git -e
-   winget install --id Kitware.CMake -e
-   winget install --id Microsoft.VisualStudio.2022.BuildTools --force --override "--passive --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
-
 2. Install and Set Up vcpkg:
-   In Command Prompt or PowerShell, clone and bootstrap vcpkg:
+```
    cd %USERPROFILE%
    git clone https://github.com/microsoft/vcpkg.git
    cd vcpkg
    .\bootstrap-vcpkg.bat
    setx VCPKG_ROOT "%USERPROFILE%\vcpkg"
-
+```
    (Restart your terminal or VS Code after setting VCPKG_ROOT)
 
-3. Clone and Build:
+4. Clone and Build:
+```
    cd %USERPROFILE%\Documents
    git clone https://github.com/vojtech-git/BI-PA2.21-clean
    cd BI-PA2.21-clean
    cmake --preset windows-vcpkg
    cmake --build build --config Debug
-
-4. Run:
+```
+5. Run:
+```
    .\build\Debug\CleanBomberman.exe
-
+```
 
 ### Ubuntu
 
 1. Install Build Tools and Dependencies:
+```
    sudo apt update
    sudo apt install -y build-essential cmake git libncurses-dev
+```
 
 2. Clone and Build:
+```
    cd ~/Documents
    git clone https://github.com/vojtech-git/BI-PA2.21-clean.git
    cd BI-PA2.21-clean
    cmake --preset linux-default
    cmake --build build
-
-   (Or press F7 inside VS Code after selecting the linux-default preset)
+```
 
 3. Run:
+```
    ./build/CleanBomberman
+```
