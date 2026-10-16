@@ -1,4 +1,5 @@
 #include "tick_bombs.hpp"
+#include <cstdlib>
 
 TickBombs::TickBombs(
     BombStore &bomb_store,
@@ -6,13 +7,17 @@ TickBombs::TickBombs(
     WallStore &wall_store,
     PlayerStore &player_store,
     SmokeStore &smoke_store,
-    BombPresenter &presenter
+    BonusStore &bonus_store,
+    BombPresenter &presenter,
+    BonusPresenter &bonus_presenter
 ) : bomb_store_(bomb_store),
     map_store_(map_store),
     wall_store_(wall_store),
     player_store_(player_store),
     smoke_store_(smoke_store),
-    presenter_(presenter) {}
+    bonus_store_(bonus_store),
+    presenter_(presenter),
+    bonus_presenter_(bonus_presenter) {}
 
 void TickBombs::Execute(float dt) {
     auto &bombs = bomb_store_.GetAllMutable();
@@ -52,7 +57,6 @@ void TickBombs::Explode(size_t bomb_index) {
     bomb_store_.Remove(bomb_index);
     presenter_.PresentBombExploded(bomb.GetX(), bomb.GetY());
 
-    // Center smoke & damage
     smoke_store_.Add(Smoke(bomb.GetX(), bomb.GetY(), 1));
     presenter_.PresentSmokePlaced(bomb.GetX(), bomb.GetY());
     CheckDamageTile(bomb.GetX(), bomb.GetY());
@@ -82,6 +86,7 @@ void TickBombs::Explode(size_t bomb_index) {
                 } else {
                     wall_store_.RemoveAt(tx, ty);
                     presenter_.PresentWallDestroyed(tx, ty);
+                    TrySpawnBonus(tx, ty);
                     smoke_store_.Add(Smoke(tx, ty, 1));
                     presenter_.PresentSmokePlaced(tx, ty);
                     CheckDamageTile(tx, ty);
@@ -93,5 +98,24 @@ void TickBombs::Explode(size_t bomb_index) {
             presenter_.PresentSmokePlaced(tx, ty);
             CheckDamageTile(tx, ty);
         }
+    }
+}
+
+void TickBombs::TrySpawnBonus(size_t x, size_t y) {
+    const auto &chances = map_store_.GetBonusChances();
+    std::vector<BonusType> available_types;
+
+    if (chances.flame)      available_types.push_back(BonusType::FlameLength);
+    if (chances.delay)      available_types.push_back(BonusType::BombCooldown);
+    if (chances.health)     available_types.push_back(BonusType::Health);
+    if (chances.frozen)     available_types.push_back(BonusType::Freeze);
+    if (chances.levitation) available_types.push_back(BonusType::Levitation);
+
+    if (available_types.empty()) return;
+
+    if (std::rand() % 2 == 0) {
+        BonusType picked = available_types[static_cast<size_t>(std::rand()) % available_types.size()];
+        bonus_store_.Add(Bonus(x, y, picked));
+        bonus_presenter_.PresentBonusSpawned(x, y);
     }
 }

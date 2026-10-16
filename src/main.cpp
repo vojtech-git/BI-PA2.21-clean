@@ -29,6 +29,9 @@
 #include "application/smokes/tick_smokes.hpp"
 #include "application/games/start_game.hpp"
 #include "application/players/tick_players.hpp"
+#include "presentation/bonuses/curses_bonus_presenter.hpp"
+#include "application/bonuses/bonus_store.hpp"
+#include "application/bonuses/collect_bonuses.hpp"
 #include <chrono>
 #include <thread>
 
@@ -54,6 +57,7 @@ int main() {
     DoorStore door_store;
     BombStore bomb_store;
     SmokeStore smoke_store;
+    BonusStore bonus_store;
 
     // Presenters
     MainMenuPresenter main_menu_presenter(view, app_state);
@@ -62,16 +66,19 @@ int main() {
     CursesGameStartPresenter start_game_presenter(view, app_state, hud_view, board_view, controls_view);
     CursesPlayerPresenter player_presenter(board_view);
     CursesBombPresenter bomb_presenter(board_view, hud_view);
+    CursesBonusPresenter bonus_presenter(board_view, hud_view);
 
     // Use cases
     NavigateToLeaderboard navigate_to_leaderboard(leaderboard_repo, leaderboard_presenter);
     NavigateToMapSelect navigate_to_map_select(map_repo, map_select_presenter);
     SelectMap select_map(map_store, map_select_presenter);
-    MovePlayer move_player(player_store, map_store, wall_store, bomb_store, player_presenter);
+    CollectBonuses collect_bonuses(player_store, bonus_store, bonus_presenter);
+    MovePlayer move_player(player_store, map_store, wall_store, bomb_store, collect_bonuses, player_presenter);
     PlaceBomb place_bomb(player_store, bomb_store, bomb_presenter);
-    TickBombs tick_bombs(bomb_store, map_store, wall_store, player_store, smoke_store, bomb_presenter);
+    TickBombs tick_bombs(bomb_store, map_store, wall_store, player_store, smoke_store, bonus_store, bomb_presenter, bonus_presenter);
     TickSmokes tick_smokes(smoke_store, bomb_presenter);
     TickPlayers tick_players(player_store);
+
 
     StartGame start_game(
         map_repo,

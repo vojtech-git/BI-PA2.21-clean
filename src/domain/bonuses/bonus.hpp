@@ -3,18 +3,22 @@
 
 enum class BonusType {
     Freeze,
-    BomboCooldown,
+    BombCooldown,
     FlameLength,
     Levitation,
     Health
 };
 
-struct Bonus {
+class Bonus {
 public:
-    Bonus(size_t x_position, size_t y_position);
+    Bonus(size_t x, size_t y, BonusType type);
+
+    size_t GetX() const;
+    size_t GetY() const;
+    BonusType GetType() const;
 
 private:
-    size_t x_position_;
-    size_t y_position_;
+    size_t x_;
+    size_t y_;
     BonusType type_;
 };

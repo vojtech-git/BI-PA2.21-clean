@@ -82,3 +82,11 @@ void Player::TakeDamage(int damage) {
 bool Player::IsDead() const {
     return health_ <= 0;
 }
+
+void Player::AddHealth(int amount) {
+    health_ += amount;
+}
+
+void Player::ReduceBombCooldown(float amount) {
+    bomb_cooldown_ = std::max(0.5f, bomb_cooldown_ - amount);
+}

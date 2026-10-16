@@ -54,6 +54,7 @@ void StartGame::PopulateStores(const MapDto &dto) {
     ghost_store_.Clear();
     door_store_.Clear();
     map_store_.Set(Map(dto.width, dto.height));
+    map_store_.SetBonusChances(dto.bonusChances);
 
     for (const auto &w : dto.walls) {
         wall_store_.Add(Wall(w.x, w.y, w.type));

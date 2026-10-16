@@ -16,6 +16,8 @@ public:
     void UpdateCooldown(float dt);
     void TakeDamage(int damage);
     bool IsDead() const;
+    void AddHealth(int amount);
+    void ReduceBombCooldown(float amount);
 
     size_t GetX() const;
     size_t GetY() const;

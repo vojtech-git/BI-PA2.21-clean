@@ -5,13 +5,14 @@ MovePlayer::MovePlayer(
     MapStore &map_store,
     WallStore &wall_store,
     BombStore &bomb_store,
+    CollectBonuses &collect_bonuses,
     PlayerPresenter &presenter
-)
-    : player_store_(player_store),
-      map_store_(map_store),
-      wall_store_(wall_store),
-      bomb_store_(bomb_store),
-      presenter_(presenter) {}
+) : player_store_(player_store),
+    map_store_(map_store),
+    wall_store_(wall_store),
+    bomb_store_(bomb_store),
+    collect_bonuses_(collect_bonuses),
+    presenter_(presenter) {}
 
 void MovePlayer::Execute(int player_id, int dx, int dy) {
     Player *player = player_store_.GetById(player_id);
@@ -21,7 +22,6 @@ void MovePlayer::Execute(int player_id, int dx, int dy) {
 
     size_t old_x = player->GetX();
     size_t old_y = player->GetY();
-
     long long target_x = static_cast<long long>(old_x) + dx;
     long long target_y = static_cast<long long>(old_y) + dy;
 
@@ -40,22 +40,22 @@ void MovePlayer::Execute(int player_id, int dx, int dy) {
 
     player->Move(next_x, next_y);
     presenter_.PresentPlayerMoved(old_x, old_y, next_x, next_y);
+
+    collect_bonuses_.Execute(player_id);
 }
 
 bool MovePlayer::IsTileBlocked(size_t x, size_t y, bool is_levitating) const {
     for (const auto &wall : wall_store_.GetAll()) {
-        if (wall.GetX() == x && wall.GetY() == y){
+        if (wall.GetX() == x && wall.GetY() == y) {
             if (wall.GetType() == WallType::Hard || !is_levitating) {
                 return true;
             }
         }
     }
-
     for (const auto &bomb : bomb_store_.GetAll()) {
         if (bomb.GetX() == x && bomb.GetY() == y) {
             return true;
         }
     }
-
     return false;
 }
