@@ -109,3 +109,13 @@ void HudView::ClearWindow() {
         window_ = nullptr;
     }
 }
+
+void HudView::UpdatePlayerHealth(int player_id, int health) {
+    auto it = player_slots_.find(player_id);
+    if (!window_ || it == player_slots_.end()) return;
+    int y = it->second;
+
+    ClearField(y, HudLayout::HP_OFFSET, HudLayout::HP_WIDTH);
+    std::string hp = "HP:" + std::to_string(health);
+    mvwaddnstr(window_, y, HudLayout::HP_OFFSET, hp.c_str(), HudLayout::HP_WIDTH);
+}

@@ -42,6 +42,12 @@ void Player::Move(size_t new_x_position, size_t new_y_position) {
     y_position_ = new_y_position;
 }
 
+void Player::UpdateCooldown(float dt) {
+    if (bomb_cooldown_ > 0.0f) {
+        bomb_cooldown_ = std::max(0.0f, bomb_cooldown_ - dt);
+    }
+}
+
 size_t Player::GetX() const {
     return x_position_;
 }
@@ -64,4 +70,15 @@ size_t Player::GetExplosionSize() const {
 
 float Player::GetBombCooldown() const {
     return bomb_cooldown_;
+}
+
+void Player::TakeDamage(int damage) {
+    health_ -= damage;
+    if (health_ < 0) {
+        health_ = 0;
+    }
+}
+
+bool Player::IsDead() const {
+    return health_ <= 0;
 }

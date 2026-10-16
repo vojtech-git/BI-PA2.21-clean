@@ -29,3 +29,16 @@ void EventRouter::dispatchKey(AppState state, int key) {
         it->second();
     }
 }
+
+void EventRouter::RegisterTick(AppState state, TickAction action) {
+    tick_routes_[state].push_back(std::move(action));
+}
+
+void EventRouter::DispatchTick(AppState state, float dt) {
+    auto it = tick_routes_.find(state);
+    if (it != tick_routes_.end()) {
+        for (auto &action : it->second) {
+            action(dt);
+        }
+    }
+}

@@ -4,6 +4,10 @@ const std::vector<Bomb>& BombStore::GetAll() const {
     return bombs_;
 }
 
+std::vector<Bomb>& BombStore::GetAllMutable() {
+    return bombs_;
+}
+
 void BombStore::Add(const Bomb &bomb) {
     bombs_.push_back(bomb);
 }

@@ -15,7 +15,7 @@ MovePlayer::MovePlayer(
 
 void MovePlayer::Execute(int player_id, int dx, int dy) {
     Player *player = player_store_.GetById(player_id);
-    if (!player || player->isFrozen()) {
+    if (!player || player->IsDead() || player->isFrozen()) {
         return;
     }
 

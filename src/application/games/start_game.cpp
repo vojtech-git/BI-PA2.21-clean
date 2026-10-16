@@ -9,6 +9,7 @@ StartGame::StartGame(
     DoorStore &door_store,
     KeybindService &keybind_service,
     MovePlayer &move_player,
+    PlaceBomb &place_bomb,
     GameStartPresenter &presenter
 ) : map_repo_(map_repo),
     map_store_(map_store),
@@ -18,6 +19,7 @@ StartGame::StartGame(
     door_store_(door_store),
     keybind_service_(keybind_service),
     move_player_(move_player),
+    place_bomb_(place_bomb),
     presenter_(presenter) {}
 
 void StartGame::Execute() {
@@ -76,5 +78,6 @@ void StartGame::BindPlayerKeys(const MapDto &dto) {
         keybind_service_.BindDynamicKey(p.leftKey, [this, player_id]() { move_player_.Execute(player_id, -1, 0); });
         keybind_service_.BindDynamicKey(p.downKey, [this, player_id]() { move_player_.Execute(player_id, 0, 1); });
         keybind_service_.BindDynamicKey(p.rightKey, [this, player_id]() { move_player_.Execute(player_id, 1, 0); });
+        keybind_service_.BindDynamicKey(p.bombKey, [this, player_id]() { place_bomb_.Execute(player_id); });
     }
 }

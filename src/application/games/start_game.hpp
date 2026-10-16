@@ -7,6 +7,7 @@
 #include "application/doors/door_store.hpp"
 #include "application/input/keybind_service.hpp"
 #include "application/players/move_player.hpp"
+#include "application/players/place_bomb.hpp"
 #include "game_start_presenter.hpp"
 
 class StartGame {
@@ -20,6 +21,7 @@ public:
         DoorStore &door_store,
         KeybindService &keybind_service,
         MovePlayer &move_player,
+        PlaceBomb &place_bomb,
         GameStartPresenter &presenter
     );
     void Execute();
@@ -36,5 +38,6 @@ private:
     DoorStore &door_store_;
     KeybindService &keybind_service_;
     MovePlayer &move_player_;
+    PlaceBomb &place_bomb_;
     GameStartPresenter &presenter_;
 };

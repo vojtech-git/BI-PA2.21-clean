@@ -15,6 +15,7 @@ public:
     void SetPosition(int y, int x);
     void StageRender();
     void ClearWindow();
+    void UpdatePlayerHealth(int player_id, int health);
 
     int GetHeight() const { return height_; }
     int GetY() const { return y_; }

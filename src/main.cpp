@@ -10,6 +10,7 @@
 #include "presentation/map_select/curses_map_select_presenter.hpp"
 #include "presentation/game/curses_game_start_presenter.hpp"
 #include "presentation/players/curses_player_presenter.hpp"
+#include "presentation/bombs/curses_bomb_presenter.hpp"
 #include "integration/file_leaderboard_repository.hpp"
 #include "integration/file_map_repository.hpp"
 #include "application/maps/map_store.hpp"
@@ -18,11 +19,16 @@
 #include "application/ghosts/ghost_store.hpp"
 #include "application/doors/door_store.hpp"
 #include "application/bombs/bomb_store.hpp"
+#include "application/smokes/smoke_store.hpp"
 #include "application/leaderboards/navigate_to_leaderboard.hpp"
 #include "application/maps/navigate_to_map_select.hpp"
 #include "application/maps/select_map.hpp"
 #include "application/players/move_player.hpp"
+#include "application/players/place_bomb.hpp"
+#include "application/bombs/tick_bombs.hpp"
+#include "application/smokes/tick_smokes.hpp"
 #include "application/games/start_game.hpp"
+#include "application/players/tick_players.hpp"
 #include <chrono>
 #include <thread>
 
@@ -31,20 +37,23 @@ int main() {
     View view;
     EventRouter router(app_state);
 
-    // Dedicated game sub-views
+    // Game views
     HudView hud_view;
     BoardView board_view;
     ControlsView controls_view;
 
-    // Repositories & Stores
+    // Repositories
     FileLeaderboardRepository leaderboard_repo;
     FileMapRepository map_repo;
+
+    // Stores
     MapStore map_store;
     WallStore wall_store;
     PlayerStore player_store;
     GhostStore ghost_store;
     DoorStore door_store;
     BombStore bomb_store;
+    SmokeStore smoke_store;
 
     // Presenters
     MainMenuPresenter main_menu_presenter(view, app_state);
@@ -52,12 +61,18 @@ int main() {
     CursesMapSelectPresenter map_select_presenter(view, app_state);
     CursesGameStartPresenter start_game_presenter(view, app_state, hud_view, board_view, controls_view);
     CursesPlayerPresenter player_presenter(board_view);
+    CursesBombPresenter bomb_presenter(board_view, hud_view);
 
     // Use cases
     NavigateToLeaderboard navigate_to_leaderboard(leaderboard_repo, leaderboard_presenter);
     NavigateToMapSelect navigate_to_map_select(map_repo, map_select_presenter);
     SelectMap select_map(map_store, map_select_presenter);
     MovePlayer move_player(player_store, map_store, wall_store, bomb_store, player_presenter);
+    PlaceBomb place_bomb(player_store, bomb_store, bomb_presenter);
+    TickBombs tick_bombs(bomb_store, map_store, wall_store, player_store, smoke_store, bomb_presenter);
+    TickSmokes tick_smokes(smoke_store, bomb_presenter);
+    TickPlayers tick_players(player_store);
+
     StartGame start_game(
         map_repo,
         map_store,
@@ -67,21 +82,31 @@ int main() {
         door_store,
         router,
         move_player,
+        place_bomb,
         start_game_presenter
     );
 
     bool running = true;
 
-    // Keybindings
+    // Register Tick Hooks
+    router.RegisterTick(AppState::Game, [&](float dt) {
+    tick_players.Execute(dt);
+    tick_bombs.Execute(dt);
+    tick_smokes.Execute(dt);
+    });
+
+    // --- Main Menu Bindings ---
     router.BindKey(AppState::MainMenu, 'p', [&]() { start_game.Execute(); });
     router.BindKey(AppState::MainMenu, 'l', [&]() { navigate_to_leaderboard.Execute(); });
     router.BindKey(AppState::MainMenu, 'm', [&]() { navigate_to_map_select.Execute(); });
     router.BindKey(AppState::MainMenu, 'q', [&]() { running = false; });
 
+    // --- Leaderboard Bindings ---
     router.BindKey(AppState::Leaderboard, KEY_LEFT, [&]() { leaderboard_presenter.ChangePage(-1); });
     router.BindKey(AppState::Leaderboard, KEY_RIGHT, [&]() { leaderboard_presenter.ChangePage(1); });
     router.BindKey(AppState::Leaderboard, 'q', [&]() { main_menu_presenter.PresentMainMenu(); });
 
+    // --- Map Select Bindings ---
     router.BindKey(AppState::MapSelect, KEY_LEFT, [&]() { map_select_presenter.ChangePage(-1); });
     router.BindKey(AppState::MapSelect, KEY_RIGHT, [&]() { map_select_presenter.ChangePage(1); });
     auto handle_slot_selection = [&](int slot) {
@@ -95,20 +120,29 @@ int main() {
     router.BindKey(AppState::MapSelect, '4', [&]() { handle_slot_selection(3); });
     router.BindKey(AppState::MapSelect, 'q', [&]() { main_menu_presenter.PresentMainMenu(); });
 
+    // --- In-Game Bindings ---
     router.BindKey(AppState::Game, 'q', [&]() {
-    hud_view.ClearWindow();
-    board_view.ClearWindow();
-    controls_view.ClearWindow();
-    main_menu_presenter.PresentMainMenu();
+        hud_view.ClearWindow();
+        board_view.ClearWindow();
+        controls_view.ClearWindow();
+        main_menu_presenter.PresentMainMenu();
     });
 
     main_menu_presenter.PresentMainMenu();
 
+    auto last_time = std::chrono::steady_clock::now();
+
     while (running) {
+        auto current_time = std::chrono::steady_clock::now();
+        float dt = std::chrono::duration<float>(current_time - last_time).count();
+        last_time = current_time;
+
         int ch = view.GetInput();
         if (ch != -1 && ch != 0) {
             router.dispatchKey(app_state, ch);
         }
+
+        router.DispatchTick(app_state, dt);
 
         if (app_state == AppState::Game) {
             hud_view.StageRender();

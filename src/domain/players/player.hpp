@@ -13,6 +13,9 @@ public:
     bool isFrozen() const;
     bool isLevitating() const;
     void Move(size_t new_x_position, size_t new_y_position);
+    void UpdateCooldown(float dt);
+    void TakeDamage(int damage);
+    bool IsDead() const;
 
     size_t GetX() const;
     size_t GetY() const;
