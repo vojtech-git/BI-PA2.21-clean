@@ -1,19 +1,23 @@
 #pragma once
-#include <cstddef>
+#include <cstdint>
+#include "domain/common/entity_id.hpp"
 
 class Bomb {
 public:
-    Bomb(size_t x_position, size_t y_position, size_t explosion_size);
+    Bomb(BombId id, uint32_t x_position, uint32_t y_position, uint32_t explosion_size);
+
+    BombId GetId() const { return id_; }
+    uint32_t GetX() const { return x_position_; }
+    uint32_t GetY() const { return y_position_; }
+    uint32_t GetExplosionSize() const { return explosion_size_; }
+    float GetDetonationTimer() const { return detonation_timer_; }
+
     void UpdateExplosion(float dt);
 
-    size_t GetX() const;
-    size_t GetY() const;
-    size_t GetExplosionSize() const;
-    float GetDetonationTimer() const;
-
 private:
-    size_t x_position_;
-    size_t y_position_;
-    float detonation_timer_;
-    size_t explosion_size_;
+    BombId id_;
+    uint32_t x_position_;
+    uint32_t y_position_;
+    float detonation_timer_{3.5f};
+    uint32_t explosion_size_;
 };

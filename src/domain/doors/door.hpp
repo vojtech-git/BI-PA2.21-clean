@@ -1,16 +1,21 @@
 #pragma once
-#include <cstddef>
+#include <cstdint>
+#include "domain/common/entity_id.hpp"
 
 class Door {
 public:
-    Door(size_t x_position, size_t y_position);
+    Door(DoorId id, uint32_t x_position, uint32_t y_position);
+
+    DoorId GetId() const { return id_; }
+    uint32_t GetX() const { return x_position_; }
+    uint32_t GetY() const { return y_position_; }
+    bool IsRevealed() const { return revealed_; }
+
     void Reveal();
-    bool IsRevealed() const;
-    size_t GetX() const;
-    size_t GetY() const;
 
 private:
-    size_t x_position_;
-    size_t y_position_;
-    bool revealed_;
+    DoorId id_;
+    uint32_t x_position_;
+    uint32_t y_position_;
+    bool revealed_{false};
 };

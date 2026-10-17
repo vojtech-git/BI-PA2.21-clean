@@ -1,5 +1,6 @@
 #pragma once
-#include <cstddef>
+#include <cstdint>
+#include "domain/common/entity_id.hpp"
 
 enum class WallType {
     Soft,
@@ -8,14 +9,16 @@ enum class WallType {
 
 class Wall {
 public:
-    Wall(size_t x_position, size_t y_position, WallType type);
+    Wall(WallId id, uint32_t x_position, uint32_t y_position, WallType type);
 
-    size_t GetX() const;
-    size_t GetY() const;
-    WallType GetType() const;
+    WallId GetId() const { return id_; }
+    uint32_t GetX() const { return x_position_; }
+    uint32_t GetY() const { return y_position_; }
+    WallType GetType() const { return type_; }
 
 private:
-    size_t x_position_;
-    size_t y_position_;
+    WallId id_;
+    uint32_t x_position_;
+    uint32_t y_position_;
     WallType type_;
 };

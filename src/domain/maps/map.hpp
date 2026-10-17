@@ -1,14 +1,17 @@
 #pragma once
-#include <cstddef>
+#include <cstdint>
 
 class Map {
 public:
-    Map(size_t width, size_t height);
+    Map(uint32_t width, uint32_t height);
 
-    size_t GetWidth() const;
-    size_t GetHeight() const;
+    uint32_t GetWidth() const { return width_; }
+    uint32_t GetHeight() const { return height_; }
+
+    bool IsInBounds(long long x, long long y) const;
+    bool IsInBounds(uint32_t x, uint32_t y) const;
 
 private:
-    size_t width_;
-    size_t height_;
+    uint32_t width_;
+    uint32_t height_;
 };

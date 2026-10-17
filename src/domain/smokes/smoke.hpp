@@ -1,19 +1,23 @@
 #pragma once
-#include <cstddef>
+#include <cstdint>
+#include "domain/common/entity_id.hpp"
 
 class Smoke {
 public:
-    Smoke(size_t x_position, size_t y_position, size_t size);
+    Smoke(SmokeId id, uint32_t x_position, uint32_t y_position, uint32_t size);
+
+    SmokeId GetId() const { return id_; }
+    uint32_t GetX() const { return x_position_; }
+    uint32_t GetY() const { return y_position_; }
+    uint32_t GetSize() const { return size_; }
+    bool IsExpired() const { return smoke_timer_ <= 0.0f; }
 
     void Update(float dt);
-    bool IsExpired() const;
-
-    size_t GetX() const;
-    size_t GetY() const;
 
 private:
-    size_t x_position_;
-    size_t y_position_;
-    float smoke_timer_;
-    size_t size_;
+    SmokeId id_;
+    uint32_t x_position_;
+    uint32_t y_position_;
+    float smoke_timer_{3.0f};
+    uint32_t size_;
 };

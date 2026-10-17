@@ -1,5 +1,8 @@
 #pragma once
-#include <cstddef>
+#include <cstdint>
+#include "domain/common/entity_id.hpp"
+
+class Player;
 
 enum class BonusType {
     Freeze,
@@ -11,14 +14,18 @@ enum class BonusType {
 
 class Bonus {
 public:
-    Bonus(size_t x, size_t y, BonusType type);
+    Bonus(BonusId id, uint32_t x, uint32_t y, BonusType type);
 
-    size_t GetX() const;
-    size_t GetY() const;
-    BonusType GetType() const;
+    BonusId GetId() const { return id_; }
+    uint32_t GetX() const { return x_; }
+    uint32_t GetY() const { return y_; }
+    BonusType GetType() const { return type_; }
+
+    void ApplyTo(Player &player) const;
 
 private:
-    size_t x_;
-    size_t y_;
+    BonusId id_;
+    uint32_t x_;
+    uint32_t y_;
     BonusType type_;
 };
