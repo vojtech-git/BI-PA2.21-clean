@@ -9,6 +9,7 @@
 #include "application/players/move_player.hpp"
 #include "application/players/place_bomb.hpp"
 #include "game_start_presenter.hpp"
+#include "application/doors/check_win_condition.hpp"
 
 class StartGame {
 public:
@@ -22,7 +23,8 @@ public:
         KeybindService &keybind_service,
         MovePlayer &move_player,
         PlaceBomb &place_bomb,
-        GameStartPresenter &presenter
+        GameStartPresenter &presenter,
+        CheckWinCondition &check_win_condition
     );
     void Execute();
 
@@ -40,4 +42,5 @@ private:
     MovePlayer &move_player_;
     PlaceBomb &place_bomb_;
     GameStartPresenter &presenter_;
+    CheckWinCondition &check_win_condition_;
 };

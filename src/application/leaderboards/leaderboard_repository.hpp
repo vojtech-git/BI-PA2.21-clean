@@ -9,4 +9,5 @@ public:
     virtual ~LeaderboardRepository() = default;
     virtual std::vector<std::string> LoadAllLeaderboardMapNames() = 0;
     virtual std::vector<LeaderboardEntry> LoadMapLeaderboard(const std::string &mapName) = 0;
+    virtual void SaveScore(const std::string &mapName, const LeaderboardEntry &entry) = 0;
 };

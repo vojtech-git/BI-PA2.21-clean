@@ -7,19 +7,23 @@ TickBombs::TickBombs(
     WallStore &wall_store,
     PlayerStore &player_store,
     GhostStore &ghost_store,
+    DoorStore &door_store,
     SmokeStore &smoke_store,
     BonusStore &bonus_store,
     BombPresenter &presenter,
-    BonusPresenter &bonus_presenter
+    BonusPresenter &bonus_presenter,
+    GameWinPresenter &win_presenter
 ) : bomb_store_(bomb_store),
     map_store_(map_store),
     wall_store_(wall_store),
     player_store_(player_store),
     ghost_store_(ghost_store),
+    door_store_(door_store),
     smoke_store_(smoke_store),
     bonus_store_(bonus_store),
     presenter_(presenter),
-    bonus_presenter_(bonus_presenter) {}
+    bonus_presenter_(bonus_presenter),
+    win_presenter_(win_presenter) {}
 
 void TickBombs::Execute(float dt) {
     auto &bombs = bomb_store_.GetAllMutable();
@@ -58,6 +62,17 @@ void TickBombs::CheckDamageTile(size_t x, size_t y) {
     }
 }
 
+void TickBombs::CheckDoorReveal(size_t x, size_t y) {
+    auto door = door_store_.Get();
+    if (door.has_value() && !door->IsRevealed()) {
+        if (door->GetX() == x && door->GetY() == y) {
+            door->Reveal();
+            door_store_.Set(*door);
+            win_presenter_.PresentDoorRevealed(x, y);
+        }
+    }
+}
+
 void TickBombs::Explode(size_t bomb_index) {
     Bomb bomb = bomb_store_.GetAll()[bomb_index];
     bomb_store_.Remove(bomb_index);
@@ -92,6 +107,7 @@ void TickBombs::Explode(size_t bomb_index) {
                 } else {
                     wall_store_.RemoveAt(tx, ty);
                     presenter_.PresentWallDestroyed(tx, ty);
+                    CheckDoorReveal(tx, ty);
                     TrySpawnBonus(tx, ty);
                     smoke_store_.Add(Smoke(tx, ty, 1));
                     presenter_.PresentSmokePlaced(tx, ty);

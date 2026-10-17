@@ -10,7 +10,8 @@ StartGame::StartGame(
     KeybindService &keybind_service,
     MovePlayer &move_player,
     PlaceBomb &place_bomb,
-    GameStartPresenter &presenter
+    GameStartPresenter &presenter,
+    CheckWinCondition &check_win_condition
 ) : map_repo_(map_repo),
     map_store_(map_store),
     wall_store_(wall_store),
@@ -20,7 +21,8 @@ StartGame::StartGame(
     keybind_service_(keybind_service),
     move_player_(move_player),
     place_bomb_(place_bomb),
-    presenter_(presenter) {}
+    presenter_(presenter),
+    check_win_condition_(check_win_condition) {}
 
 void StartGame::Execute() {
     std::string selectedMapName = map_store_.GetSelectedMapName();
@@ -28,6 +30,8 @@ void StartGame::Execute() {
 
     auto mapDto = map_repo_.LoadMap(selectedMapName);
     if (!mapDto.has_value()) return;
+
+    check_win_condition_.ResetTimer();
 
     PopulateStores(*mapDto);
     BindPlayerKeys(*mapDto);

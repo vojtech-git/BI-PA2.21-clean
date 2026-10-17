@@ -36,6 +36,8 @@
 #include "application/ghosts/move_ghosts.hpp"
 #include "presentation/ghosts/curses_ghost_collision_presenter.hpp"
 #include "application/ghosts/check_ghost_collision.hpp"
+#include "presentation/doors/curses_game_win_presenter.hpp"
+#include "application/doors/check_win_condition.hpp"
 #include <chrono>
 #include <thread>
 
@@ -73,6 +75,7 @@ int main() {
     CursesBonusPresenter bonus_presenter(board_view, hud_view);
     CursesGhostPresenter ghost_presenter(board_view);
     CursesGhostCollisionPresenter ghost_collision_presenter(board_view, hud_view);
+    CursesGameWinPresenter win_presenter(view, app_state, board_view, hud_view, controls_view);
 
     // Use cases
     NavigateToLeaderboard navigate_to_leaderboard(leaderboard_repo, leaderboard_presenter);
@@ -82,22 +85,14 @@ int main() {
     MovePlayer move_player(player_store, map_store, wall_store, bomb_store, collect_bonuses, player_presenter);
     PlaceBomb place_bomb(player_store, bomb_store, bomb_presenter);
     TickBombs tick_bombs(
-        bomb_store,
-        map_store,
-        wall_store,
-        player_store,
-        ghost_store,
-        smoke_store,
-        bonus_store,
-        bomb_presenter,
-        bonus_presenter
-    );    
+        bomb_store, map_store, wall_store, player_store, ghost_store, door_store,
+        smoke_store, bonus_store, bomb_presenter, bonus_presenter, win_presenter
+    ); 
     TickSmokes tick_smokes(smoke_store, bomb_presenter);
     TickPlayers tick_players(player_store);
     MoveGhosts move_ghosts(ghost_store, map_store, wall_store, bomb_store, ghost_presenter);
     CheckGhostCollision check_ghost_collision(player_store, ghost_store, ghost_collision_presenter);
-
-
+    CheckWinCondition check_win_condition(player_store, door_store, map_store, leaderboard_repo, win_presenter);
     StartGame start_game(
         map_repo,
         map_store,
@@ -108,18 +103,21 @@ int main() {
         router,
         move_player,
         place_bomb,
-        start_game_presenter
+        start_game_presenter,
+        check_win_condition
     );
 
     bool running = true;
 
     // Register Tick Hooks
     router.RegisterTick(AppState::Game, [&](float dt) {
+        check_win_condition.UpdateTime(dt);
         tick_players.Execute(dt);
         tick_bombs.Execute(dt);
         tick_smokes.Execute(dt);
         move_ghosts.Execute(dt);
         check_ghost_collision.Execute();
+        check_win_condition.Execute();
     });
 
     // --- Main Menu Bindings ---

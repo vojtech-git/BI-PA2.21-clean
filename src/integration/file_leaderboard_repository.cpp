@@ -56,3 +56,15 @@ std::vector<LeaderboardEntry> FileLeaderboardRepository::LoadMapLeaderboard(cons
 
     return entries;
 }
+
+void FileLeaderboardRepository::SaveScore(const std::string &mapName, const LeaderboardEntry &entry) {
+    std::filesystem::create_directories("leaderboards");
+    std::string path = "leaderboards/" + mapName;
+    if (path.find(".txt") == std::string::npos) {
+        path += ".txt";
+    }
+    std::ofstream file(path, std::ios::app);
+    if (file.is_open()) {
+        file << entry.playerName << " " << entry.score << "\n";
+    }
+}
