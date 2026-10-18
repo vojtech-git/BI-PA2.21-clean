@@ -1,4 +1,7 @@
 #pragma once
+
+#include <vector>
+#include <optional>
 #include "application/games/game_start_presenter.hpp"
 #include "presentation/view.hpp"
 #include "presentation/app_state.hpp"
@@ -17,7 +20,7 @@ public:
     );
 
     void PresentGameStart(
-        const Board &map,
+        const Board &board,
         const std::vector<Wall> &walls,
         const std::vector<Player> &players,
         const std::vector<Ghost> &ghosts,

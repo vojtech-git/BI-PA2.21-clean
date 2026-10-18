@@ -1,20 +1,20 @@
-#include "tick_smokes.hpp"
+#include "application/smokes/tick_smokes.hpp"
 
-TickSmokes::TickSmokes(SmokeStore &smoke_store, BombPresenter &presenter)
-    : smoke_store_(smoke_store),
+TickSmokes::TickSmokes(SmokeRepository &smoke_repo, BombPresenter &presenter)
+    : smoke_repo_(smoke_repo),
       presenter_(presenter) {}
 
 void TickSmokes::Execute(float dt) {
-    auto &smokes = smoke_store_.GetAllMutable();
-    if (smokes.empty()) return;
+    auto smokes = smoke_repo_.GetAll();
 
-    for (size_t i = smokes.size(); i > 0; --i) {
-        size_t idx = i - 1;
-        smokes[idx].Update(dt);
+    for (auto &smoke : smokes) {
+        smoke.Update(dt);
 
-        if (smokes[idx].IsExpired()) {
-            presenter_.PresentSmokeRemoved(smokes[idx].GetX(), smokes[idx].GetY());
-            smoke_store_.Remove(idx);
+        if (smoke.IsExpired()) {
+            presenter_.PresentSmokeRemoved(smoke.GetX(), smoke.GetY());
+            smoke_repo_.DeleteById(smoke.GetId());
+        } else {
+            smoke_repo_.Save(smoke);
         }
     }
 }

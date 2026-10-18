@@ -1,13 +1,14 @@
-#include "file_map_repository.hpp"
+#include "integration/file_map_repository.hpp"
 #include <filesystem>
 #include <fstream>
 #include <sstream>
 
 std::vector<std::string> FileMapRepository::LoadAllMapNames() {
     std::vector<std::string> maps;
-    const std::string mapDirectory = "maps";
-    if (std::filesystem::exists(mapDirectory)) {
-        for (const auto &entry : std::filesystem::directory_iterator(mapDirectory)) {
+    const std::string map_directory = "maps";
+
+    if (std::filesystem::exists(map_directory)) {
+        for (const auto &entry : std::filesystem::directory_iterator(map_directory)) {
             if (entry.is_regular_file()) {
                 maps.push_back(entry.path().filename().string());
             }
@@ -16,8 +17,8 @@ std::vector<std::string> FileMapRepository::LoadAllMapNames() {
     return maps;
 }
 
-std::optional<MapDto> FileMapRepository::LoadMap(const std::string &mapName) {
-    std::string path = "maps/" + mapName;
+std::optional<MapDto> FileMapRepository::LoadMapConfiguration(const std::string &map_name) {
+    std::string path = "maps/" + map_name;
     if (path.find(".txt") == std::string::npos) {
         path += ".txt";
     }
@@ -35,9 +36,9 @@ std::optional<MapDto> FileMapRepository::LoadMap(const std::string &mapName) {
         std::istringstream iss(line);
         std::string key;
         iss >> key;
-
         int val = 0;
-        if (key == "flameChance")      { iss >> val; dto.bonusChances.flame = (val != 0); }
+
+        if (key == "flameChance")           { iss >> val; dto.bonusChances.flame = (val != 0); }
         else if (key == "frozenChance")     { iss >> val; dto.bonusChances.frozen = (val != 0); }
         else if (key == "levitationChance") { iss >> val; dto.bonusChances.levitation = (val != 0); }
         else if (key == "delayChance")      { iss >> val; dto.bonusChances.delay = (val != 0); }
@@ -54,7 +55,6 @@ std::optional<MapDto> FileMapRepository::LoadMap(const std::string &mapName) {
 
     for (size_t y = 0; y < dto.height; ++y) {
         if (!std::getline(file, line)) break;
-
         for (size_t x = 0; x < dto.width && x < line.length(); ++x) {
             char cell = line[x];
             switch (cell) {
@@ -81,7 +81,6 @@ std::optional<MapDto> FileMapRepository::LoadMap(const std::string &mapName) {
     while (std::getline(file, line)) {
         if (line.empty()) continue;
         std::istringstream iss(line);
-
         PlayerConfigDto player;
         if (iss >> player.y >> player.x >> player.name
                 >> player.upKey >> player.leftKey >> player.downKey >> player.rightKey >> player.bombKey) {

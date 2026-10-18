@@ -1,6 +1,6 @@
 #pragma once
 
-#include "application/board/board_repository.hpp"
+#include "application/boards/board_repository.hpp"
 
 class MemoryBoardRepository : public BoardRepository {
 public:

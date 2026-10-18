@@ -1,11 +1,12 @@
 #pragma once
-#include "application/players/player_store.hpp"
+
+#include "application/players/player_repository.hpp"
 
 class TickPlayers {
 public:
-    explicit TickPlayers(PlayerStore &player_store);
+    explicit TickPlayers(PlayerRepository &player_repo);
     void Execute(float dt);
 
 private:
-    PlayerStore &player_store_;
+    PlayerRepository &player_repo_;
 };

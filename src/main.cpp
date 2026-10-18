@@ -2,116 +2,134 @@
 #include "presentation/app_state.hpp"
 #include "presentation/view.hpp"
 #include "presentation/event_router.hpp"
+
+// Views
 #include "presentation/game/hud_view.hpp"
 #include "presentation/game/board_view.hpp"
 #include "presentation/game/controls_view.hpp"
+
+// Presenters
 #include "presentation/main_menu/main_menu_presenter.hpp"
 #include "presentation/leaderboard/curses_leaderboard_presenter.hpp"
 #include "presentation/map_select/curses_map_select_presenter.hpp"
 #include "presentation/game/curses_game_start_presenter.hpp"
 #include "presentation/players/curses_player_presenter.hpp"
 #include "presentation/bombs/curses_bomb_presenter.hpp"
+#include "presentation/ghosts/curses_ghost_presenter.hpp"
+#include "presentation/ghosts/curses_ghost_collision_presenter.hpp"
+#include "presentation/doors/curses_game_win_presenter.hpp"
+
+// Repositories & Services
 #include "integration/file_leaderboard_repository.hpp"
 #include "integration/file_map_repository.hpp"
-#include "application/maps/map_store.hpp"
-#include "application/walls/wall_store.hpp"
-#include "application/players/player_store.hpp"
-#include "application/ghosts/ghost_store.hpp"
-#include "application/doors/door_store.hpp"
-#include "application/bombs/bomb_store.hpp"
-#include "application/smokes/smoke_store.hpp"
+#include "integration/simple_id_generator_service.hpp"
+#include "integration/memory_board_repository.hpp"
+#include "integration/memory_map_selection_repository.hpp"
+#include "integration/memory_player_repository.hpp"
+#include "integration/memory_ghost_repository.hpp"
+#include "integration/memory_wall_repository.hpp"
+#include "integration/memory_bomb_repository.hpp"
+#include "integration/memory_smoke_repository.hpp"
+#include "integration/memory_bonus_repository.hpp"
+#include "integration/memory_door_repository.hpp"
+
+// Use cases
 #include "application/leaderboards/navigate_to_leaderboard.hpp"
 #include "application/maps/navigate_to_map_select.hpp"
 #include "application/maps/select_map.hpp"
 #include "application/players/move_player.hpp"
 #include "application/players/place_bomb.hpp"
+#include "application/players/tick_players.hpp"
 #include "application/bombs/tick_bombs.hpp"
 #include "application/smokes/tick_smokes.hpp"
-#include "application/games/start_game.hpp"
-#include "application/players/tick_players.hpp"
-#include "presentation/bonuses/curses_bonus_presenter.hpp"
-#include "application/bonuses/bonus_store.hpp"
-#include "application/bonuses/collect_bonuses.hpp"
-#include "presentation/ghosts/curses_ghost_presenter.hpp"
 #include "application/ghosts/move_ghosts.hpp"
-#include "presentation/ghosts/curses_ghost_collision_presenter.hpp"
 #include "application/ghosts/check_ghost_collision.hpp"
-#include "presentation/doors/curses_game_win_presenter.hpp"
 #include "application/doors/check_win_condition.hpp"
+#include "application/games/start_game.hpp"
+
 #include <chrono>
 #include <thread>
 
 int main() {
     AppState app_state = AppState::MainMenu;
     View view;
-    EventRouter router(app_state);
 
-    // Game views
+    // 1. Views
     HudView hud_view;
     BoardView board_view;
     ControlsView controls_view;
 
-    // Repositories
+    // 2. Repositories & Services
     FileLeaderboardRepository leaderboard_repo;
-    FileMapRepository map_repo;
+    FileMapRepository map_config_repo;
+    SimpleIdGeneratorService id_generator;
 
-    // Stores
-    MapStore map_store;
-    WallStore wall_store;
-    PlayerStore player_store;
-    GhostStore ghost_store;
-    DoorStore door_store;
-    BombStore bomb_store;
-    SmokeStore smoke_store;
-    BonusStore bonus_store;
+    MemoryMapSelectionRepository map_selection_repo;
+    MemoryBoardRepository board_repo;
+    MemoryPlayerRepository player_repo;
+    MemoryGhostRepository ghost_repo;
+    MemoryWallRepository wall_repo;
+    MemoryBombRepository bomb_repo;
+    MemorySmokeRepository smoke_repo;
+    MemoryBonusRepository bonus_repo;
+    MemoryDoorRepository door_repo;
 
-    // Presenters
+    // 3. Presenters
     MainMenuPresenter main_menu_presenter(view, app_state);
     CursesLeaderboardPresenter leaderboard_presenter(view, app_state);
     CursesMapSelectPresenter map_select_presenter(view, app_state);
     CursesGameStartPresenter start_game_presenter(view, app_state, hud_view, board_view, controls_view);
-    CursesPlayerPresenter player_presenter(board_view);
+    CursesPlayerPresenter player_presenter(board_view, hud_view);
     CursesBombPresenter bomb_presenter(board_view, hud_view);
-    CursesBonusPresenter bonus_presenter(board_view, hud_view);
     CursesGhostPresenter ghost_presenter(board_view);
     CursesGhostCollisionPresenter ghost_collision_presenter(board_view, hud_view);
     CursesGameWinPresenter win_presenter(view, app_state, board_view, hud_view, controls_view);
 
-    // Use cases
+    // 4. Player Use Cases (instantiated first for Router)
+    MovePlayer move_player(player_repo, board_repo, wall_repo, bomb_repo, bonus_repo, player_presenter);
+    PlaceBomb place_bomb(player_repo, bomb_repo, id_generator, bomb_presenter);
+
+    // 5. Event Router
+    EventRouter router(app_state, move_player, place_bomb);
+
+    // 6. Navigation & Game Use Cases
     NavigateToLeaderboard navigate_to_leaderboard(leaderboard_repo, leaderboard_presenter);
-    NavigateToMapSelect navigate_to_map_select(map_repo, map_select_presenter);
-    SelectMap select_map(map_store, map_select_presenter);
-    CollectBonuses collect_bonuses(player_store, bonus_store, bonus_presenter);
-    MovePlayer move_player(player_store, map_store, wall_store, bomb_store, collect_bonuses, player_presenter);
-    PlaceBomb place_bomb(player_store, bomb_store, bomb_presenter);
+    NavigateToMapSelect navigate_to_map_select(map_config_repo, map_select_presenter);
+    SelectMap select_map(map_selection_repo, map_select_presenter);
+
+    TickPlayers tick_players(player_repo);
     TickBombs tick_bombs(
-        bomb_store, map_store, wall_store, player_store, ghost_store, door_store,
-        smoke_store, bonus_store, bomb_presenter, bonus_presenter, win_presenter
-    ); 
-    TickSmokes tick_smokes(smoke_store, bomb_presenter);
-    TickPlayers tick_players(player_store);
-    MoveGhosts move_ghosts(ghost_store, map_store, wall_store, bomb_store, ghost_presenter);
-    CheckGhostCollision check_ghost_collision(player_store, ghost_store, ghost_collision_presenter);
-    CheckWinCondition check_win_condition(player_store, door_store, map_store, leaderboard_repo, win_presenter);
+        bomb_repo, board_repo, wall_repo, player_repo, ghost_repo,
+        door_repo, smoke_repo, bonus_repo, id_generator, bomb_presenter, win_presenter
+    );
+    TickSmokes tick_smokes(smoke_repo, bomb_presenter);
+    MoveGhosts move_ghosts(ghost_repo, board_repo, wall_repo, bomb_repo, ghost_presenter);
+    CheckGhostCollision check_ghost_collision(player_repo, ghost_repo, ghost_collision_presenter);
+    CheckWinCondition check_win_condition(player_repo, door_repo, board_repo, map_selection_repo, leaderboard_repo, win_presenter);
+
     StartGame start_game(
-        map_repo,
-        map_store,
-        wall_store,
-        player_store,
-        ghost_store,
-        door_store,
+        map_config_repo,
+        map_selection_repo,
+        board_repo,
+        wall_repo,
+        player_repo,
+        ghost_repo,
+        door_repo,
+        id_generator,
         router,
-        move_player,
-        place_bomb,
-        start_game_presenter,
-        check_win_condition
+        start_game_presenter
     );
 
     bool running = true;
 
-    // Register Tick Hooks
+    // 7. Register Tick Hooks
     router.RegisterTick(AppState::Game, [&](float dt) {
-        check_win_condition.UpdateTime(dt);
+        auto board = board_repo.Get();
+        if (board && !board->IsGameOver()) {
+            board->UpdateTimer(dt);
+            board_repo.Save(*board);
+        }
+
         tick_players.Execute(dt);
         tick_bombs.Execute(dt);
         tick_smokes.Execute(dt);
@@ -120,20 +138,22 @@ int main() {
         check_win_condition.Execute();
     });
 
-    // --- Main Menu Bindings ---
+    // 8. Key Bindings
+    // --- Main Menu ---
     router.BindKey(AppState::MainMenu, 'p', [&]() { start_game.Execute(); });
     router.BindKey(AppState::MainMenu, 'l', [&]() { navigate_to_leaderboard.Execute(); });
     router.BindKey(AppState::MainMenu, 'm', [&]() { navigate_to_map_select.Execute(); });
     router.BindKey(AppState::MainMenu, 'q', [&]() { running = false; });
 
-    // --- Leaderboard Bindings ---
+    // --- Leaderboard ---
     router.BindKey(AppState::Leaderboard, KEY_LEFT, [&]() { leaderboard_presenter.ChangePage(-1); });
     router.BindKey(AppState::Leaderboard, KEY_RIGHT, [&]() { leaderboard_presenter.ChangePage(1); });
     router.BindKey(AppState::Leaderboard, 'q', [&]() { main_menu_presenter.PresentMainMenu(); });
 
-    // --- Map Select Bindings ---
+    // --- Map Select ---
     router.BindKey(AppState::MapSelect, KEY_LEFT, [&]() { map_select_presenter.ChangePage(-1); });
     router.BindKey(AppState::MapSelect, KEY_RIGHT, [&]() { map_select_presenter.ChangePage(1); });
+
     auto handle_slot_selection = [&](int slot) {
         if (auto map_name = map_select_presenter.GetMapAtSlot(slot)) {
             select_map.Execute(*map_name);
@@ -145,7 +165,7 @@ int main() {
     router.BindKey(AppState::MapSelect, '4', [&]() { handle_slot_selection(3); });
     router.BindKey(AppState::MapSelect, 'q', [&]() { main_menu_presenter.PresentMainMenu(); });
 
-    // --- In-Game Bindings ---
+    // --- In-Game ---
     router.BindKey(AppState::Game, 'q', [&]() {
         hud_view.ClearWindow();
         board_view.ClearWindow();
@@ -153,8 +173,8 @@ int main() {
         main_menu_presenter.PresentMainMenu();
     });
 
+    // 9. Initial Render & Event Loop
     main_menu_presenter.PresentMainMenu();
-
     auto last_time = std::chrono::steady_clock::now();
 
     while (running) {

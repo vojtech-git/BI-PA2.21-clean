@@ -1,4 +1,4 @@
-#include "curses_game_start_presenter.hpp"
+#include "presentation/game/curses_game_start_presenter.hpp"
 #include <algorithm>
 
 CursesGameStartPresenter::CursesGameStartPresenter(
@@ -14,7 +14,7 @@ CursesGameStartPresenter::CursesGameStartPresenter(
     controls_view_(controls_view) {}
 
 void CursesGameStartPresenter::PresentGameStart(
-    const Board &map,
+    const Board &board,
     const std::vector<Wall> &walls,
     const std::vector<Player> &players,
     const std::vector<Ghost> &ghosts,
@@ -36,8 +36,8 @@ void CursesGameStartPresenter::PresentGameStart(
     int hud_w = std::min(term_w - 4, 60);
     int hud_h = static_cast<int>(players.size()) + 1;
 
-    int board_w = static_cast<int>(map.GetWidth());
-    int board_h = static_cast<int>(map.GetHeight());
+    int board_w = static_cast<int>(board.GetWidth());
+    int board_h = static_cast<int>(board.GetHeight());
 
     int ctrl_w = std::min(term_w - 2, 50);
     int ctrl_h = static_cast<int>(hud_config.controls.size()) + 2;
@@ -51,24 +51,23 @@ void CursesGameStartPresenter::PresentGameStart(
     hud_view_.InitWindow(hud_y, hud_x, hud_w, hud_h);
     hud_view_.Reset();
 
-    for (size_t i = 0; i < players.size(); ++i) {
-        int player_id = static_cast<int>(i);
-        const auto &p = players[i];
+    for (const auto &p : players) {
+        int player_id = static_cast<int>(p.GetId().GetValue());
         hud_view_.AddPlayerSlot(player_id, p.GetName());
         hud_view_.UpdatePlayer(
             player_id,
             p.GetHealth(),
             p.GetExplosionSize(),
             p.GetBombCooldown(),
-            p.isFrozen(),
-            p.isLevitating()
+            p.IsFrozen(),
+            p.IsLevitating()
         );
     }
 
     // 2. Board View
     int board_y = hud_y + hud_h + 1;
     int board_x = std::max(0, (term_w - board_w) / 2);
-    board_view_.InitWindow(board_y, board_x, map.GetWidth(), map.GetHeight());
+    board_view_.InitWindow(board_y, board_x, board.GetWidth(), board.GetHeight());
     board_view_.Clear();
 
     if (door.has_value() && door->IsRevealed()) {

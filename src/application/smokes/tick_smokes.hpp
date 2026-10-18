@@ -1,13 +1,14 @@
 #pragma once
-#include "application/smokes/smoke_store.hpp"
+
 #include "application/bombs/bomb_presenter.hpp"
+#include "application/smokes/smoke_repository.hpp"
 
 class TickSmokes {
 public:
-    TickSmokes(SmokeStore &smoke_store, BombPresenter &presenter);
+    TickSmokes(SmokeRepository &smoke_repo, BombPresenter &presenter);
     void Execute(float dt);
 
 private:
-    SmokeStore &smoke_store_;
+    SmokeRepository &smoke_repo_;
     BombPresenter &presenter_;
 };
