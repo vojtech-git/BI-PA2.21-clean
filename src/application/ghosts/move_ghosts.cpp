@@ -1,74 +1,56 @@
-#include "move_ghosts.hpp"
-#include <vector>
-#include <cstdlib>
+#include "application/ghosts/move_ghosts.hpp"
+#include "domain/ghosts/ghost_movement_service.hpp"
 
 MoveGhosts::MoveGhosts(
-    GhostStore &ghost_store,
-    MapStore &map_store,
-    WallStore &wall_store,
-    BombStore &bomb_store,
+    GhostRepository &ghost_repo,
+    BoardRepository &board_repo,
+    WallRepository &wall_repo,
+    BombRepository &bomb_repo,
     GhostPresenter &presenter
-) : ghost_store_(ghost_store),
-    map_store_(map_store),
-    wall_store_(wall_store),
-    bomb_store_(bomb_store),
+) : ghost_repo_(ghost_repo),
+    board_repo_(board_repo),
+    wall_repo_(wall_repo),
+    bomb_repo_(bomb_repo),
     presenter_(presenter) {}
 
 void MoveGhosts::Execute(float dt) {
-    auto &ghosts = ghost_store_.GetAllMutable();
-    Map map = map_store_.Get();
+    auto board_opt = board_repo_.Get();
+    if (!board_opt.has_value()) {
+        return;
+    }
 
-    const int dx[] = {0, 0, -1, 1};
-    const int dy[] = {-1, 1, 0, 0};
+    auto ghosts = ghost_repo_.GetAll();
+    if (ghosts.empty()) {
+        return;
+    }
+
+    const auto walls = wall_repo_.GetAll();
+    const auto bombs = bomb_repo_.GetAll();
 
     for (auto &ghost : ghosts) {
         ghost.Update(dt);
         if (!ghost.CanMove()) {
+            ghost_repo_.Save(ghost);
             continue;
         }
 
-        size_t gx = ghost.GetX();
-        size_t gy = ghost.GetY();
+        uint32_t old_x = ghost.GetX();
+        uint32_t old_y = ghost.GetY();
 
-        std::vector<std::pair<size_t, size_t>> valid_moves;
+        auto next_pos = GhostMovementService::CalculateNextPosition(
+            ghost,
+            *board_opt,
+            walls,
+            bombs
+        );
 
-        for (int i = 0; i < 4; ++i) {
-            long long target_x = static_cast<long long>(gx) + dx[i];
-            long long target_y = static_cast<long long>(gy) + dy[i];
-
-            if (target_x < 0 || target_x >= static_cast<long long>(map.GetWidth()) ||
-                target_y < 0 || target_y >= static_cast<long long>(map.GetHeight())) {
-                continue;
-            }
-
-            size_t tx = static_cast<size_t>(target_x);
-            size_t ty = static_cast<size_t>(target_y);
-
-            if (!IsTileBlocked(tx, ty)) {
-                valid_moves.push_back({tx, ty});
-            }
-        }
-
-        if (!valid_moves.empty()) {
-            auto [next_x, next_y] = valid_moves[static_cast<size_t>(std::rand()) % valid_moves.size()];
-            ghost.Move(next_x, next_y);
-            presenter_.PresentGhostMoved(gx, gy, next_x, next_y);
+        if (next_pos.has_value()) {
+            ghost.Move(*next_pos);
+            ghost_repo_.Save(ghost);
+            presenter_.PresentGhostMoved(old_x, old_y, next_pos->x, next_pos->y);
         } else {
             ghost.ResetTimer();
+            ghost_repo_.Save(ghost);
         }
     }
-}
-
-bool MoveGhosts::IsTileBlocked(size_t x, size_t y) const {
-    for (const auto &wall : wall_store_.GetAll()) {
-        if (wall.GetX() == x && wall.GetY() == y) {
-            return true;
-        }
-    }
-    for (const auto &bomb : bomb_store_.GetAll()) {
-        if (bomb.GetX() == x && bomb.GetY() == y) {
-            return true;
-        }
-    }
-    return false;
 }
