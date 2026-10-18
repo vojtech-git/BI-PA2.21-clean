@@ -1,14 +1,29 @@
-#include "event_router.hpp"
+#include "presentation/event_router.hpp"
 
-EventRouter::EventRouter(AppState &app_state)
-    : app_state_(app_state) {}
+EventRouter::EventRouter(AppState &app_state, MovePlayer &move_player, PlaceBomb &place_bomb)
+    : app_state_(app_state),
+      move_player_(move_player),
+      place_bomb_(place_bomb) {}
 
 void EventRouter::BindKey(AppState currentState, int key, Action action) {
     key_routes_[{currentState, key}] = std::move(action);
 }
 
-void EventRouter::BindDynamicKey(int key, std::function<void()> action) {
-    dynamic_routes_[key] = std::move(action);
+void EventRouter::BindPlayerMove(int key, PlayerId player_id, MoveDirection dir) {
+    dynamic_routes_[key] = [this, player_id, dir]() {
+        switch (dir) {
+            case MoveDirection::Up:    move_player_.Execute(player_id, 0, -1); break;
+            case MoveDirection::Down:  move_player_.Execute(player_id, 0, 1);  break;
+            case MoveDirection::Left:  move_player_.Execute(player_id, -1, 0); break;
+            case MoveDirection::Right: move_player_.Execute(player_id, 1, 0);  break;
+        }
+    };
+}
+
+void EventRouter::BindPlayerBomb(int key, PlayerId player_id) {
+    dynamic_routes_[key] = [this, player_id]() {
+        place_bomb_.Execute(player_id);
+    };
 }
 
 void EventRouter::ClearDynamicKeys() {
@@ -23,7 +38,6 @@ void EventRouter::dispatchKey(AppState state, int key) {
             return;
         }
     }
-
     auto it = key_routes_.find({state, key});
     if (it != key_routes_.end()) {
         it->second();

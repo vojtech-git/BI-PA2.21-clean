@@ -11,8 +11,6 @@ StartGame::StartGame(
     DoorRepository &door_repo,
     IdGeneratorService &id_generator,
     KeybindService &keybind_service,
-    MovePlayer &move_player,
-    PlaceBomb &place_bomb,
     GameStartPresenter &presenter
 ) : map_config_repo_(map_config_repo),
     map_selection_repo_(map_selection_repo),
@@ -23,20 +21,14 @@ StartGame::StartGame(
     door_repo_(door_repo),
     id_generator_(id_generator),
     keybind_service_(keybind_service),
-    move_player_(move_player),
-    place_bomb_(place_bomb),
     presenter_(presenter) {}
 
 void StartGame::Execute() {
     std::string selected_map = map_selection_repo_.GetSelectedMapName();
-    if (selected_map.empty()) {
-        return;
-    }
+    if (selected_map.empty()) return;
 
     auto map_dto = map_config_repo_.LoadMapConfiguration(selected_map);
-    if (!map_dto.has_value()) {
-        return;
-    }
+    if (!map_dto.has_value()) return;
 
     PopulateRepositories(*map_dto);
     BindPlayerKeys(*map_dto);
@@ -48,9 +40,7 @@ void StartGame::Execute() {
     }
 
     auto active_board = board_repo_.Get();
-    if (!active_board.has_value()) {
-        return;
-    }
+    if (!active_board.has_value()) return;
 
     presenter_.PresentGameStart(
         *active_board,
@@ -109,20 +99,10 @@ void StartGame::BindPlayerKeys(const MapDto &dto) {
         const auto &p = dto.players[i];
         PlayerId player_id = players[i].GetId();
 
-        keybind_service_.BindDynamicKey(p.upKey, [this, player_id]() {
-            move_player_.Execute(player_id, 0, -1);
-        });
-        keybind_service_.BindDynamicKey(p.leftKey, [this, player_id]() {
-            move_player_.Execute(player_id, -1, 0);
-        });
-        keybind_service_.BindDynamicKey(p.downKey, [this, player_id]() {
-            move_player_.Execute(player_id, 0, 1);
-        });
-        keybind_service_.BindDynamicKey(p.rightKey, [this, player_id]() {
-            move_player_.Execute(player_id, 1, 0);
-        });
-        keybind_service_.BindDynamicKey(p.bombKey, [this, player_id]() {
-            place_bomb_.Execute(player_id);
-        });
+        keybind_service_.BindPlayerMove(p.upKey, player_id, MoveDirection::Up);
+        keybind_service_.BindPlayerMove(p.leftKey, player_id, MoveDirection::Left);
+        keybind_service_.BindPlayerMove(p.downKey, player_id, MoveDirection::Down);
+        keybind_service_.BindPlayerMove(p.rightKey, player_id, MoveDirection::Right);
+        keybind_service_.BindPlayerBomb(p.bombKey, player_id);
     }
 }
