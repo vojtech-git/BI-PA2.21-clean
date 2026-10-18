@@ -1,9 +1,10 @@
 #pragma once
 
-#include "domain/bonuses/bonus.hpp"
-#include "application/maps/map_dto.hpp"
 #include <optional>
 #include <vector>
+
+#include "domain/boards/bonus_chances.hpp"
+#include "domain/bonuses/bonus.hpp"
 
 class BonusSpawnerService {
 public:

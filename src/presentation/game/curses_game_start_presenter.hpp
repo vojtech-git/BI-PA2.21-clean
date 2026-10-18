@@ -17,7 +17,7 @@ public:
     );
 
     void PresentGameStart(
-        const Map &map,
+        const Board &map,
         const std::vector<Wall> &walls,
         const std::vector<Player> &players,
         const std::vector<Ghost> &ghosts,

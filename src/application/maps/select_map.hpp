@@ -1,14 +1,15 @@
 #pragma once
-#include "map_store.hpp"
-#include "map_select_presenter.hpp"
+
 #include <string>
+#include "application/maps/map_selection_repository.hpp"
+#include "application/maps/map_select_presenter.hpp"
 
 class SelectMap {
 public:
-    SelectMap(MapStore &store, MapSelectPresenter &presenter);
-    void Execute(const std::string &mapName);
+    SelectMap(MapSelectionRepository &selection_repo, MapSelectPresenter &presenter);
+    void Execute(const std::string &map_name);
 
 private:
-    MapStore &store_;
+    MapSelectionRepository &selection_repo_;
     MapSelectPresenter &presenter_;
 };

@@ -1,4 +1,5 @@
 #include "domain/bonuses/bonus_spawner_service.hpp"
+
 #include <cstdlib>
 
 std::optional<BonusType> BonusSpawnerService::RollBonus(const BonusChances &chances) {

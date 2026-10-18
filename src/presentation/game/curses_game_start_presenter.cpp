@@ -14,7 +14,7 @@ CursesGameStartPresenter::CursesGameStartPresenter(
     controls_view_(controls_view) {}
 
 void CursesGameStartPresenter::PresentGameStart(
-    const Map &map,
+    const Board &map,
     const std::vector<Wall> &walls,
     const std::vector<Player> &players,
     const std::vector<Ghost> &ghosts,

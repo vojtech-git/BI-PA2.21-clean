@@ -2,32 +2,36 @@
 
 bool CollisionService::IsTileBlockedForPlayer(
     Position position,
-    const Map &map,
+    const Board &board,
     const std::vector<Wall> &walls,
     const std::vector<Bomb> &bombs,
     bool is_levitating
 ) {
-    if (!map.IsInBounds(position)) {
+    if (!board.IsInBounds(position)) {
         return true;
     }
+
     if (HasWallCollision(position, walls, is_levitating)) {
         return true;
     }
+
     return HasBombCollision(position, bombs);
 }
 
 bool CollisionService::IsTileBlockedForGhost(
     Position position,
-    const Map &map,
+    const Board &board,
     const std::vector<Wall> &walls,
     const std::vector<Bomb> &bombs
 ) {
-    if (!map.IsInBounds(position)) {
+    if (!board.IsInBounds(position)) {
         return true;
     }
+
     if (HasWallCollision(position, walls, false)) {
         return true;
     }
+
     return HasBombCollision(position, bombs);
 }
 

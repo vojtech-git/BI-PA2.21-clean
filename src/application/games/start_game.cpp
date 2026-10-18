@@ -1,23 +1,29 @@
-#include "start_game.hpp"
+#include "application/games/start_game.hpp"
+#include "domain/boards/board.hpp"
+#include "domain/boards/bonus_chances.hpp"
 
 StartGame::StartGame(
-    MapRepository &map_repo,
-    MapStore &map_store,
-    WallStore &wall_store,
-    PlayerStore &player_store,
-    GhostStore &ghost_store,
-    DoorStore &door_store,
+    MapConfigurationRepository &map_config_repo,
+    MapSelectionRepository &map_selection_repo,
+    BoardRepository &board_repo,
+    WallRepository &wall_repo,
+    PlayerRepository &player_repo,
+    GhostRepository &ghost_repo,
+    DoorRepository &door_repo,
+    IdGeneratorService &id_generator,
     KeybindService &keybind_service,
     MovePlayer &move_player,
     PlaceBomb &place_bomb,
     GameStartPresenter &presenter,
     CheckWinCondition &check_win_condition
-) : map_repo_(map_repo),
-    map_store_(map_store),
-    wall_store_(wall_store),
-    player_store_(player_store),
-    ghost_store_(ghost_store),
-    door_store_(door_store),
+) : map_config_repo_(map_config_repo),
+    map_selection_repo_(map_selection_repo),
+    board_repo_(board_repo),
+    wall_repo_(wall_repo),
+    player_repo_(player_repo),
+    ghost_repo_(ghost_repo),
+    door_repo_(door_repo),
+    id_generator_(id_generator),
     keybind_service_(keybind_service),
     move_player_(move_player),
     place_bomb_(place_bomb),
@@ -25,64 +31,106 @@ StartGame::StartGame(
     check_win_condition_(check_win_condition) {}
 
 void StartGame::Execute() {
-    std::string selectedMapName = map_store_.GetSelectedMapName();
-    if (selectedMapName.empty()) return;
+    std::string selected_map = map_selection_repo_.GetSelectedMapName();
+    if (selected_map.empty()) {
+        return;
+    }
 
-    auto mapDto = map_repo_.LoadMap(selectedMapName);
-    if (!mapDto.has_value()) return;
+    auto map_dto = map_config_repo_.LoadMapConfiguration(selected_map);
+    if (!map_dto.has_value()) {
+        return;
+    }
 
     check_win_condition_.ResetTimer();
-
-    PopulateStores(*mapDto);
-    BindPlayerKeys(*mapDto);
+    PopulateRepositories(*map_dto);
+    BindPlayerKeys(*map_dto);
 
     GameHudConfig config;
-    for (const auto &p : mapDto->players) {
+    for (const auto &p : map_dto->players) {
         std::string moves = {p.upKey, p.leftKey, p.downKey, p.rightKey};
         config.controls.push_back({p.name, moves, p.bombKey});
     }
 
+    auto active_board = board_repo_.Get();
+    if (!active_board.has_value()) {
+        return;
+    }
+
     presenter_.PresentGameStart(
-        map_store_.Get(),
-        wall_store_.GetAll(),
-        player_store_.GetAll(),
-        ghost_store_.GetAll(),
-        door_store_.Get(),
+        *active_board,
+        wall_repo_.GetAll(),
+        player_repo_.GetAll(),
+        ghost_repo_.GetAll(),
+        door_repo_.Get(),
         config
     );
 }
 
-void StartGame::PopulateStores(const MapDto &dto) {
-    wall_store_.Clear();
-    player_store_.Clear();
-    ghost_store_.Clear();
-    door_store_.Clear();
-    map_store_.Set(Map(dto.width, dto.height));
-    map_store_.SetBonusChances(dto.bonusChances);
+void StartGame::PopulateRepositories(const MapDto &dto) {
+    board_repo_.Clear();
+    wall_repo_.Clear();
+    player_repo_.Clear();
+    ghost_repo_.Clear();
+    door_repo_.Clear();
+    id_generator_.ResetAll();
+
+    BonusChances chances{
+        dto.bonusChances.flame,
+        dto.bonusChances.frozen,
+        dto.bonusChances.levitation,
+        dto.bonusChances.delay,
+        dto.bonusChances.health
+    };
+
+    board_repo_.Save(Board(
+        static_cast<uint32_t>(dto.width),
+        static_cast<uint32_t>(dto.height),
+        chances
+    ));
 
     for (const auto &w : dto.walls) {
-        wall_store_.Add(Wall(w.x, w.y, w.type));
+        Position pos{static_cast<uint32_t>(w.x), static_cast<uint32_t>(w.y)};
+        wall_repo_.Save(Wall(id_generator_.Next<WallId>(), pos, w.type));
     }
+
     for (const auto &g : dto.ghosts) {
-        ghost_store_.Add(Ghost(g.x, g.y));
+        Position pos{static_cast<uint32_t>(g.x), static_cast<uint32_t>(g.y)};
+        ghost_repo_.Save(Ghost(id_generator_.Next<GhostId>(), pos));
     }
+
     if (dto.hasDoor) {
-        door_store_.Set(Door(dto.doorPosition.x, dto.doorPosition.y));
+        Position door_pos{static_cast<uint32_t>(dto.doorPosition.x), static_cast<uint32_t>(dto.doorPosition.y)};
+        door_repo_.Save(Door(id_generator_.Next<DoorId>(), door_pos));
     }
+
     for (const auto &p : dto.players) {
-        player_store_.Add(Player(p.name, p.x, p.y, 3));
+        Position pos{static_cast<uint32_t>(p.x), static_cast<uint32_t>(p.y)};
+        player_repo_.Save(Player(id_generator_.Next<PlayerId>(), p.name, pos, 3));
     }
 }
 
 void StartGame::BindPlayerKeys(const MapDto &dto) {
     keybind_service_.ClearDynamicKeys();
-    for (size_t i = 0; i < dto.players.size(); ++i) {
+
+    auto players = player_repo_.GetAll();
+    for (size_t i = 0; i < dto.players.size() && i < players.size(); ++i) {
         const auto &p = dto.players[i];
-        int player_id = static_cast<int>(i);
-        keybind_service_.BindDynamicKey(p.upKey, [this, player_id]() { move_player_.Execute(player_id, 0, -1); });
-        keybind_service_.BindDynamicKey(p.leftKey, [this, player_id]() { move_player_.Execute(player_id, -1, 0); });
-        keybind_service_.BindDynamicKey(p.downKey, [this, player_id]() { move_player_.Execute(player_id, 0, 1); });
-        keybind_service_.BindDynamicKey(p.rightKey, [this, player_id]() { move_player_.Execute(player_id, 1, 0); });
-        keybind_service_.BindDynamicKey(p.bombKey, [this, player_id]() { place_bomb_.Execute(player_id); });
+        PlayerId player_id = players[i].GetId();
+
+        keybind_service_.BindDynamicKey(p.upKey, [this, player_id]() {
+            move_player_.Execute(player_id, 0, -1);
+        });
+        keybind_service_.BindDynamicKey(p.leftKey, [this, player_id]() {
+            move_player_.Execute(player_id, -1, 0);
+        });
+        keybind_service_.BindDynamicKey(p.downKey, [this, player_id]() {
+            move_player_.Execute(player_id, 0, 1);
+        });
+        keybind_service_.BindDynamicKey(p.rightKey, [this, player_id]() {
+            move_player_.Execute(player_id, 1, 0);
+        });
+        keybind_service_.BindDynamicKey(p.bombKey, [this, player_id]() {
+            place_bomb_.Execute(player_id);
+        });
     }
 }

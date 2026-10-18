@@ -1,5 +1,5 @@
 #pragma once
-#include "domain/maps/map.hpp"
+#include "domain/boards/board.hpp"
 #include "domain/walls/wall.hpp"
 #include "domain/players/player.hpp"
 #include "domain/ghosts/ghost.hpp"
@@ -12,7 +12,7 @@ class GameStartPresenter {
 public:
     virtual ~GameStartPresenter() = default;
     virtual void PresentGameStart(
-        const Map &map,
+        const Board &board,
         const std::vector<Wall> &walls,
         const std::vector<Player> &players,
         const std::vector<Ghost> &ghosts,

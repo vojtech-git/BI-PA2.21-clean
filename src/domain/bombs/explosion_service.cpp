@@ -1,16 +1,17 @@
 #include "domain/bombs/explosion_service.hpp"
+
 #include <algorithm>
 
 ExplosionOutcome ExplosionDomainService::ProcessExplosion(
     const Bomb &bomb,
-    const Map &map,
+    const Board &board,
     const std::vector<Wall> &walls,
     std::vector<Player> players,
     const std::vector<Ghost> &ghosts
 ) {
     ExplosionOutcome outcome;
-    outcome.smoke_tiles.push_back(bomb.GetPosition());
 
+    outcome.smoke_tiles.push_back(bomb.GetPosition());
     ApplyDamageAt(bomb.GetPosition(), players, ghosts, outcome);
 
     const int dx[] = {0, 0, -1, 1};
@@ -21,7 +22,7 @@ ExplosionOutcome ExplosionDomainService::ProcessExplosion(
             long long tx = static_cast<long long>(bomb.GetX()) + dx[dir] * step;
             long long ty = static_cast<long long>(bomb.GetY()) + dy[dir] * step;
 
-            if (tx < 0 || ty < 0 || !map.IsInBounds(static_cast<uint32_t>(tx), static_cast<uint32_t>(ty))) {
+            if (tx < 0 || ty < 0 || !board.IsInBounds(Position{static_cast<uint32_t>(tx), static_cast<uint32_t>(ty)})) {
                 break;
             }
 
@@ -35,6 +36,7 @@ ExplosionOutcome ExplosionDomainService::ProcessExplosion(
                 if (wall_it->GetType() == WallType::Hard) {
                     break;
                 }
+
                 outcome.destroyed_wall_tiles.push_back(pos);
                 outcome.smoke_tiles.push_back(pos);
                 ApplyDamageAt(pos, players, ghosts, outcome);

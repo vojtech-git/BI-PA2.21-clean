@@ -1,14 +1,14 @@
 #pragma once
 
-#include "domain/bombs/bomb.hpp"
-#include "domain/maps/map.hpp"
-#include "domain/walls/wall.hpp"
-#include "domain/players/player.hpp"
-#include "domain/ghosts/ghost.hpp"
-#include "domain/common/position.hpp"
-#include "domain/common/entity_id.hpp"
-
 #include <vector>
+
+#include "domain/boards/board.hpp"
+#include "domain/bombs/bomb.hpp"
+#include "domain/common/entity_id.hpp"
+#include "domain/common/position.hpp"
+#include "domain/ghosts/ghost.hpp"
+#include "domain/players/player.hpp"
+#include "domain/walls/wall.hpp"
 
 struct ExplosionOutcome {
     std::vector<Position> smoke_tiles;
@@ -21,7 +21,7 @@ class ExplosionDomainService {
 public:
     static ExplosionOutcome ProcessExplosion(
         const Bomb &bomb,
-        const Map &map,
+        const Board &board,
         const std::vector<Wall> &walls,
         std::vector<Player> players,
         const std::vector<Ghost> &ghosts

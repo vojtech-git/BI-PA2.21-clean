@@ -1,16 +1,17 @@
 #pragma once
 
-#include "domain/common/position.hpp"
-#include "domain/maps/map.hpp"
-#include "domain/walls/wall.hpp"
-#include "domain/bombs/bomb.hpp"
 #include <vector>
+
+#include "domain/boards/board.hpp"
+#include "domain/bombs/bomb.hpp"
+#include "domain/common/position.hpp"
+#include "domain/walls/wall.hpp"
 
 class CollisionService {
 public:
     static bool IsTileBlockedForPlayer(
         Position position,
-        const Map &map,
+        const Board &board,
         const std::vector<Wall> &walls,
         const std::vector<Bomb> &bombs,
         bool is_levitating
@@ -18,7 +19,7 @@ public:
 
     static bool IsTileBlockedForGhost(
         Position position,
-        const Map &map,
+        const Board &board,
         const std::vector<Wall> &walls,
         const std::vector<Bomb> &bombs
     );

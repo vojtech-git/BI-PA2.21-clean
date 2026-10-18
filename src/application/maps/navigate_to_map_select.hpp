@@ -1,14 +1,14 @@
 #pragma once
-#include "map_repository.hpp"
-#include "map_select_presenter.hpp"
 
-class NavigateToMapSelect
-{
+#include "application/maps/map_configuration_repository.hpp"
+#include "application/maps/map_select_presenter.hpp"
+
+class NavigateToMapSelect {
 public:
-    NavigateToMapSelect(MapRepository &repo, MapSelectPresenter &presenter);
+    NavigateToMapSelect(MapConfigurationRepository &repo, MapSelectPresenter &presenter);
     void Execute();
 
 private:
-    MapRepository &repo_;
+    MapConfigurationRepository &repo_;
     MapSelectPresenter &presenter_;
 };

@@ -1,15 +1,15 @@
 #include "domain/ghosts/ghost_movement_service.hpp"
 #include "domain/collision/collision_service.hpp"
+
 #include <cstdlib>
 
 std::optional<Position> GhostMovementService::CalculateNextPosition(
     const Ghost &ghost,
-    const Map &map,
+    const Board &board,
     const std::vector<Wall> &walls,
     const std::vector<Bomb> &bombs
 ) {
-    std::vector<Position> valid_moves = GetValidNeighborMoves(ghost, map, walls, bombs);
-
+    std::vector<Position> valid_moves = GetValidNeighborMoves(ghost, board, walls, bombs);
     if (valid_moves.empty()) {
         return std::nullopt;
     }
@@ -20,7 +20,7 @@ std::optional<Position> GhostMovementService::CalculateNextPosition(
 
 std::vector<Position> GhostMovementService::GetValidNeighborMoves(
     const Ghost &ghost,
-    const Map &map,
+    const Board &board,
     const std::vector<Wall> &walls,
     const std::vector<Bomb> &bombs
 ) {
@@ -40,9 +40,10 @@ std::vector<Position> GhostMovementService::GetValidNeighborMoves(
 
         uint32_t next_x = static_cast<uint32_t>(target_x);
         uint32_t next_y = static_cast<uint32_t>(target_y);
+        Position next_pos{next_x, next_y};
 
-        if (!CollisionService::IsTileBlockedForGhost(Position{next_x, next_y}, map, walls, bombs)) {
-            valid_moves.push_back(Position{next_x, next_y});
+        if (!CollisionService::IsTileBlockedForGhost(next_pos, board, walls, bombs)) {
+            valid_moves.push_back(next_pos);
         }
     }
 
