@@ -1,47 +1,46 @@
-#include "check_win_condition.hpp"
+#include "application/doors/check_win_condition.hpp"
 
 CheckWinCondition::CheckWinCondition(
-    PlayerStore &player_store,
-    DoorStore &door_store,
-    MapStore &map_store,
+    PlayerRepository &player_repo,
+    DoorRepository &door_repo,
+    BoardRepository &board_repo,
+    MapSelectionRepository &map_selection_repo,
     LeaderboardRepository &leaderboard_repo,
     GameWinPresenter &presenter
-) : player_store_(player_store),
-    door_store_(door_store),
-    map_store_(map_store),
+) : player_repo_(player_repo),
+    door_repo_(door_repo),
+    board_repo_(board_repo),
+    map_selection_repo_(map_selection_repo),
     leaderboard_repo_(leaderboard_repo),
     presenter_(presenter) {}
 
-void CheckWinCondition::ResetTimer() {
-    game_timer_ = 0.0f;
-    won_ = false;
-}
-
-void CheckWinCondition::UpdateTime(float dt) {
-    if (!won_) {
-        game_timer_ += dt;
-    }
-}
-
 bool CheckWinCondition::Execute() {
-    if (won_) return true;
-
-    auto door = door_store_.Get();
-    if (!door.has_value() || !door->IsRevealed()) {
+    auto board_opt = board_repo_.Get();
+    if (!board_opt.has_value() || board_opt->IsGameOver()) {
         return false;
     }
 
-    for (const auto &player : player_store_.GetAll()) {
-        if (!player.IsDead() && player.GetX() == door->GetX() && player.GetY() == door->GetY()) {
-            won_ = true;
-            int final_score = static_cast<int>(game_timer_);
+    auto door_opt = door_repo_.Get();
+    if (!door_opt.has_value() || !door_opt->IsRevealed()) {
+        return false;
+    }
 
-            std::string map_name = map_store_.GetSelectedMapName();
+    Position door_pos = door_opt->GetPosition();
+
+    for (const auto &player : player_repo_.GetAll()) {
+        if (!player.IsDead() && player.GetPosition() == door_pos) {
+            Board board = *board_opt;
+            board.MarkGameOver();
+            board_repo_.Save(board);
+
+            int final_score = static_cast<int>(board.GetElapsedTime());
+            std::string map_name = map_selection_repo_.GetSelectedMapName();
+
             leaderboard_repo_.SaveScore(map_name, {player.GetName(), final_score});
-
             presenter_.PresentGameWon(player.GetName(), final_score);
             return true;
         }
     }
+
     return false;
 }
