@@ -1,9 +1,8 @@
 #include "domain/bonuses/bonus_spawner_service.hpp"
-
 #include <cstdlib>
 
-std::optional<BonusType> BonusSpawnerService::RollBonus(const BonusChances &chances) {
-    std::vector<BonusType> available = CollectAvailableBonusTypes(chances);
+std::optional<BonusType> BonusSpawnerService::RollBonus(const Board &board) {
+    std::vector<BonusType> available = CollectAvailableBonusTypes(board);
     if (available.empty()) {
         return std::nullopt;
     }
@@ -15,13 +14,13 @@ std::optional<BonusType> BonusSpawnerService::RollBonus(const BonusChances &chan
     return SelectRandomBonus(available);
 }
 
-std::vector<BonusType> BonusSpawnerService::CollectAvailableBonusTypes(const BonusChances &chances) {
+std::vector<BonusType> BonusSpawnerService::CollectAvailableBonusTypes(const Board &board) {
     std::vector<BonusType> available;
-    if (chances.flame)      available.push_back(BonusType::FlameLength);
-    if (chances.delay)      available.push_back(BonusType::BombCooldown);
-    if (chances.health)     available.push_back(BonusType::Health);
-    if (chances.frozen)     available.push_back(BonusType::Freeze);
-    if (chances.levitation) available.push_back(BonusType::Levitation);
+    if (board.HasFlameChance())      available.push_back(BonusType::FlameLength);
+    if (board.HasDelayChance())      available.push_back(BonusType::BombCooldown);
+    if (board.HasHealthChance())     available.push_back(BonusType::Health);
+    if (board.HasFrozenChance())     available.push_back(BonusType::Freeze);
+    if (board.HasLevitationChance()) available.push_back(BonusType::Levitation);
     return available;
 }
 

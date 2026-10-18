@@ -1,6 +1,5 @@
 #include "application/games/start_game.hpp"
 #include "domain/boards/board.hpp"
-#include "domain/boards/bonus_chances.hpp"
 
 StartGame::StartGame(
     MapConfigurationRepository &map_config_repo,
@@ -14,8 +13,7 @@ StartGame::StartGame(
     KeybindService &keybind_service,
     MovePlayer &move_player,
     PlaceBomb &place_bomb,
-    GameStartPresenter &presenter,
-    CheckWinCondition &check_win_condition
+    GameStartPresenter &presenter
 ) : map_config_repo_(map_config_repo),
     map_selection_repo_(map_selection_repo),
     board_repo_(board_repo),
@@ -27,8 +25,7 @@ StartGame::StartGame(
     keybind_service_(keybind_service),
     move_player_(move_player),
     place_bomb_(place_bomb),
-    presenter_(presenter),
-    check_win_condition_(check_win_condition) {}
+    presenter_(presenter) {}
 
 void StartGame::Execute() {
     std::string selected_map = map_selection_repo_.GetSelectedMapName();
@@ -41,7 +38,6 @@ void StartGame::Execute() {
         return;
     }
 
-    check_win_condition_.ResetTimer();
     PopulateRepositories(*map_dto);
     BindPlayerKeys(*map_dto);
 
@@ -74,18 +70,14 @@ void StartGame::PopulateRepositories(const MapDto &dto) {
     door_repo_.Clear();
     id_generator_.ResetAll();
 
-    BonusChances chances{
+    board_repo_.Save(Board(
+        static_cast<uint32_t>(dto.width),
+        static_cast<uint32_t>(dto.height),
         dto.bonusChances.flame,
         dto.bonusChances.frozen,
         dto.bonusChances.levitation,
         dto.bonusChances.delay,
         dto.bonusChances.health
-    };
-
-    board_repo_.Save(Board(
-        static_cast<uint32_t>(dto.width),
-        static_cast<uint32_t>(dto.height),
-        chances
     ));
 
     for (const auto &w : dto.walls) {

@@ -2,7 +2,6 @@
 
 #include "application/boards/board_repository.hpp"
 #include "application/common/id_generator_service.hpp"
-#include "application/doors/check_win_condition.hpp"
 #include "application/doors/door_repository.hpp"
 #include "application/games/game_start_presenter.hpp"
 #include "application/ghosts/ghost_repository.hpp"
@@ -28,8 +27,7 @@ public:
         KeybindService &keybind_service,
         MovePlayer &move_player,
         PlaceBomb &place_bomb,
-        GameStartPresenter &presenter,
-        CheckWinCondition &check_win_condition
+        GameStartPresenter &presenter
     );
 
     void Execute();
@@ -50,5 +48,4 @@ private:
     MovePlayer &move_player_;
     PlaceBomb &place_bomb_;
     GameStartPresenter &presenter_;
-    CheckWinCondition &check_win_condition_;
 };
