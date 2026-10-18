@@ -2,4 +2,4 @@
 #include "application/common/repository.hpp"
 #include "domain/ghosts/ghost.hpp"
 
-class GhostRepository : public IRepository<Ghost, GhostId> {};
+class GhostRepository : public virtual IRepository<Ghost, GhostId> {};

@@ -2,4 +2,4 @@
 #include "application/common/repository.hpp"
 #include "domain/smokes/smoke.hpp"
 
-class SmokeRepository : public IRepository<Smoke, SmokeId> {};
+class SmokeRepository : public virtual IRepository<Smoke, SmokeId> {};
