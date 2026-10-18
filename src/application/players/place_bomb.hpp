@@ -1,19 +1,25 @@
 #pragma once
-#include "application/players/player_store.hpp"
-#include "application/bombs/bomb_store.hpp"
+
 #include "application/bombs/bomb_presenter.hpp"
+#include "application/bombs/bomb_repository.hpp"
+#include "application/common/id_generator_service.hpp"
+#include "application/players/player_repository.hpp"
+#include "domain/common/entity_id.hpp"
 
 class PlaceBomb {
 public:
     PlaceBomb(
-        PlayerStore &player_store,
-        BombStore &bomb_store,
+        PlayerRepository &player_repo,
+        BombRepository &bomb_repo,
+        IdGeneratorService &id_generator,
         BombPresenter &presenter
     );
-    void Execute(int player_id);
+
+    void Execute(PlayerId player_id);
 
 private:
-    PlayerStore &player_store_;
-    BombStore &bomb_store_;
+    PlayerRepository &player_repo_;
+    BombRepository &bomb_repo_;
+    IdGeneratorService &id_generator_;
     BombPresenter &presenter_;
 };

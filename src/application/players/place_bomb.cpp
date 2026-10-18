@@ -1,29 +1,40 @@
-#include "place_bomb.hpp"
+#include "application/players/place_bomb.hpp"
+#include "domain/bombs/bomb.hpp"
 
 PlaceBomb::PlaceBomb(
-    PlayerStore &player_store,
-    BombStore &bomb_store,
+    PlayerRepository &player_repo,
+    BombRepository &bomb_repo,
+    IdGeneratorService &id_generator,
     BombPresenter &presenter
-) : player_store_(player_store),
-    bomb_store_(bomb_store),
+) : player_repo_(player_repo),
+    bomb_repo_(bomb_repo),
+    id_generator_(id_generator),
     presenter_(presenter) {}
 
-void PlaceBomb::Execute(int player_id) {
-    Player *player = player_store_.GetById(player_id);
-    if (!player || player->IsDead() || player->isFrozen() || player->GetBombCooldown() > 0.0f) {
+void PlaceBomb::Execute(PlayerId player_id) {
+    auto player_opt = player_repo_.GetById(player_id);
+    if (!player_opt.has_value()) {
         return;
     }
 
-    size_t x = player->GetX();
-    size_t y = player->GetY();
+    Player player = *player_opt;
+    if (!player.CanPlantBomb()) {
+        return;
+    }
 
-    for (const auto &b : bomb_store_.GetAll()) {
-        if (b.GetX() == x && b.GetY() == y) {
+    Position pos = player.GetPosition();
+
+    for (const auto &b : bomb_repo_.GetAll()) {
+        if (b.GetPosition() == pos) {
             return;
         }
     }
 
-    bomb_store_.Add(Bomb(x, y, player->GetExplosionSize()));
-    player->PlantBomb();
-    presenter_.PresentBombPlaced(x, y);
+    BombId bomb_id = id_generator_.Next<BombId>();
+    bomb_repo_.Save(Bomb(bomb_id, pos, player.GetExplosionSize()));
+
+    player.PlantBomb();
+    player_repo_.Save(player);
+
+    presenter_.PresentBombPlaced(pos.x, pos.y);
 }

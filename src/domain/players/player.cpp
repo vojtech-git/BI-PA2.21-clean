@@ -75,7 +75,7 @@ bool Player::IsDead() const {
 }
 
 bool Player::CanPlantBomb() const {
-    return !IsDead() && bomb_cooldown_timer_ <= 0.0f;
+    return !IsDead() && !IsFrozen() && bomb_cooldown_timer_ <= 0.0f;
 }
 
 void Player::PlantBomb() {
