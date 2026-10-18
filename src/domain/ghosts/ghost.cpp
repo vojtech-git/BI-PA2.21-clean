@@ -1,20 +1,26 @@
 #include "domain/ghosts/ghost.hpp"
+#include "domain/common/game_constants.hpp"
 
-Ghost::Ghost(GhostId id, uint32_t x_position, uint32_t y_position)
+Ghost::Ghost(GhostId id, Position position)
     : id_(id),
-      x_position_(x_position),
-      y_position_(y_position) {}
+      position_(position),
+      movement_timer_(domain::config::ghost::kMoveInterval),
+      move_interval_(domain::config::ghost::kMoveInterval) {}
 
 GhostId Ghost::GetId() const {
     return id_;
 }
 
+Position Ghost::GetPosition() const {
+    return position_;
+}
+
 uint32_t Ghost::GetX() const {
-    return x_position_;
+    return position_.x;
 }
 
 uint32_t Ghost::GetY() const {
-    return y_position_;
+    return position_.y;
 }
 
 void Ghost::Update(float dt) {
@@ -29,8 +35,11 @@ void Ghost::ResetTimer() {
     movement_timer_ = move_interval_;
 }
 
-void Ghost::Move(uint32_t new_x_position, uint32_t new_y_position) {
-    x_position_ = new_x_position;
-    y_position_ = new_y_position;
+void Ghost::Move(Position new_position) {
+    position_ = new_position;
     ResetTimer();
+}
+
+void Ghost::Move(uint32_t new_x, uint32_t new_y) {
+    Move(Position{new_x, new_y});
 }

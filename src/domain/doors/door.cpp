@@ -1,20 +1,23 @@
 #include "domain/doors/door.hpp"
 
-Door::Door(DoorId id, uint32_t x_position, uint32_t y_position)
+Door::Door(DoorId id, Position position)
     : id_(id),
-      x_position_(x_position),
-      y_position_(y_position) {}
+      position_(position) {}
 
 DoorId Door::GetId() const {
     return id_;
 }
 
+Position Door::GetPosition() const {
+    return position_;
+}
+
 uint32_t Door::GetX() const {
-    return x_position_;
+    return position_.x;
 }
 
 uint32_t Door::GetY() const {
-    return y_position_;
+    return position_.y;
 }
 
 bool Door::IsRevealed() const {

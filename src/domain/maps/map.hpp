@@ -8,7 +8,6 @@ public:
     uint32_t GetWidth() const;
     uint32_t GetHeight() const;
 
-    bool IsInBounds(long long x, long long y) const;
     bool IsInBounds(uint32_t x, uint32_t y) const;
 
 private:

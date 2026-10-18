@@ -1,13 +1,15 @@
 #include "domain/players/player.hpp"
+#include "domain/common/game_constants.hpp"
 #include <algorithm>
 #include <utility>
 
-Player::Player(PlayerId id, std::string name, uint32_t x_position, uint32_t y_position, int health)
+Player::Player(PlayerId id, std::string name, Position position, int health)
     : id_(id),
       name_(std::move(name)),
-      x_position_(x_position),
-      y_position_(y_position),
-      health_(health) {}
+      position_(position),
+      health_(std::max(0, health)),
+      max_bomb_cooldown_(domain::config::player::kInitialBombCooldown),
+      explosion_size_(domain::config::player::kInitialExplosionSize) {}
 
 PlayerId Player::GetId() const {
     return id_;
@@ -17,12 +19,16 @@ const std::string& Player::GetName() const {
     return name_;
 }
 
+Position Player::GetPosition() const {
+    return position_;
+}
+
 uint32_t Player::GetX() const {
-    return x_position_;
+    return position_.x;
 }
 
 uint32_t Player::GetY() const {
-    return y_position_;
+    return position_.y;
 }
 
 int Player::GetHealth() const {
@@ -34,27 +40,33 @@ uint32_t Player::GetExplosionSize() const {
 }
 
 float Player::GetBombCooldown() const {
-    return bomb_cooldown_;
+    return bomb_cooldown_timer_;
+}
+
+float Player::GetMaxBombCooldown() const {
+    return max_bomb_cooldown_;
+}
+
+void Player::Move(Position new_position) {
+    if (IsDead() || IsFrozen()) {
+        return;
+    }
+    position_ = new_position;
 }
 
 void Player::Move(uint32_t new_x, uint32_t new_y) {
-    if (IsFrozen()) {
-        return;
-    }
-    x_position_ = new_x;
-    y_position_ = new_y;
+    Move(Position{new_x, new_y});
 }
 
 void Player::TakeDamage(int damage) {
-    if (IsInvulnerable() || IsDead()) {
+    if (damage <= 0 || IsInvulnerable() || IsDead()) {
         return;
     }
-    health_ -= damage;
-    if (health_ < 0) {
-        health_ = 0;
-    }
+
+    health_ = std::max(0, health_ - damage);
+
     if (!IsDead()) {
-        invulnerability_timer_ = 2.0f;
+        invulnerability_timer_ = domain::config::player::kInvulnerabilityDuration;
     }
 }
 
@@ -62,19 +74,35 @@ bool Player::IsDead() const {
     return health_ <= 0;
 }
 
+bool Player::CanPlantBomb() const {
+    return !IsDead() && bomb_cooldown_timer_ <= 0.0f;
+}
+
 void Player::PlantBomb() {
-    bomb_cooldown_ = 2.0f;
+    bomb_cooldown_timer_ = max_bomb_cooldown_;
 }
 
 void Player::UpdateCooldown(float dt) {
-    if (bomb_cooldown_ > 0.0f) {
-        bomb_cooldown_ = std::max(0.0f, bomb_cooldown_ - dt);
+    if (bomb_cooldown_timer_ > 0.0f) {
+        bomb_cooldown_timer_ = std::max(0.0f, bomb_cooldown_timer_ - dt);
     }
 }
 
 void Player::UpdateInvulnerability(float dt) {
     if (invulnerability_timer_ > 0.0f) {
         invulnerability_timer_ = std::max(0.0f, invulnerability_timer_ - dt);
+    }
+}
+
+void Player::UpdateFreeze(float dt) {
+    if (frozen_timer_ > 0.0f) {
+        frozen_timer_ = std::max(0.0f, frozen_timer_ - dt);
+    }
+}
+
+void Player::UpdateLevitation(float dt) {
+    if (levitation_timer_ > 0.0f) {
+        levitation_timer_ = std::max(0.0f, levitation_timer_ - dt);
     }
 }
 
@@ -93,19 +121,22 @@ bool Player::IsLevitating() const {
 void Player::ApplyBonus(BonusType type) {
     switch (type) {
         case BonusType::FlameLength:
-            explosion_size_ += 1;
+            explosion_size_ += domain::config::bonus::kExplosionBonus;
             break;
         case BonusType::BombCooldown:
-            bomb_cooldown_ = std::max(0.5f, bomb_cooldown_ - 0.3f);
+            max_bomb_cooldown_ = std::max(
+                domain::config::player::kMinBombCooldown,
+                max_bomb_cooldown_ - domain::config::bonus::kCooldownReduction
+            );
             break;
         case BonusType::Health:
-            health_ += 1;
+            health_ += domain::config::bonus::kHealthBonus;
             break;
         case BonusType::Freeze:
-            frozen_timer_ = 3.0f;
+            frozen_timer_ = domain::config::bonus::kFreezeDuration;
             break;
         case BonusType::Levitation:
-            levitation_timer_ = 5.0f;
+            levitation_timer_ = domain::config::bonus::kLevitationDuration;
             break;
     }
 }

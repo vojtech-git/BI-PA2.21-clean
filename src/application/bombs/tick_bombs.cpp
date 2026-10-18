@@ -31,7 +31,7 @@ void TickBombs::Execute(float dt) {
 
     for (size_t i = bombs.size(); i > 0; --i) {
         size_t idx = i - 1;
-        bombs[idx].UpdateExplosion(dt);
+        bombs[idx].UpdateDetonationTimer(dt);
 
         if (bombs[idx].GetDetonationTimer() <= 0.0f) {
             Explode(idx);

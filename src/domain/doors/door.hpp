@@ -1,12 +1,14 @@
 #pragma once
 #include <cstdint>
 #include "domain/common/entity_id.hpp"
+#include "domain/common/position.hpp"
 
 class Door {
 public:
-    Door(DoorId id, uint32_t x_position, uint32_t y_position);
+    Door(DoorId id, Position position);
 
     DoorId GetId() const;
+    Position GetPosition() const;
     uint32_t GetX() const;
     uint32_t GetY() const;
     bool IsRevealed() const;
@@ -15,7 +17,6 @@ public:
 
 private:
     DoorId id_;
-    uint32_t x_position_;
-    uint32_t y_position_;
+    Position position_;
     bool revealed_{false};
 };

@@ -1,39 +1,36 @@
 #include "domain/bombs/bomb.hpp"
+#include "domain/common/game_constants.hpp"
 
-Bomb::Bomb(BombId id, uint32_t x_position, uint32_t y_position, uint32_t explosion_size)
+Bomb::Bomb(BombId id, Position position, uint32_t explosion_size)
     : id_(id),
-      x_position_(x_position),
-      y_position_(y_position),
-      explosion_size_(explosion_size) 
-{
-    detonation_timer_ = 4.0f;
+      position_(position),
+      detonation_timer_(domain::config::bomb::kDetonationDuration),
+      explosion_size_(explosion_size) {}
+
+BombId Bomb::GetId() const {
+    return id_;
 }
 
-BombId Bomb::GetId() const
-{ 
-    return id_; 
+Position Bomb::GetPosition() const {
+    return position_;
 }
 
-uint32_t Bomb::GetX() const
-{ 
-    return x_position_;
+uint32_t Bomb::GetX() const {
+    return position_.x;
 }
 
-uint32_t Bomb::GetY() const
-{ 
-    return y_position_;
+uint32_t Bomb::GetY() const {
+    return position_.y;
 }
 
-uint32_t Bomb::GetExplosionSize() const
-{
+uint32_t Bomb::GetExplosionSize() const {
     return explosion_size_;
 }
 
-float Bomb::GetDetonationTimer() const
-{ 
+float Bomb::GetDetonationTimer() const {
     return detonation_timer_;
 }
 
-void Bomb::UpdateExplosion(float dt) {
+void Bomb::UpdateDetonationTimer(float dt) {
     detonation_timer_ -= dt;
 }

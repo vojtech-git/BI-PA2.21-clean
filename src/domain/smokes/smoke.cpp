@@ -1,21 +1,26 @@
 #include "domain/smokes/smoke.hpp"
+#include "domain/common/game_constants.hpp"
 
-Smoke::Smoke(SmokeId id, uint32_t x_position, uint32_t y_position, uint32_t size)
+Smoke::Smoke(SmokeId id, Position position, uint32_t size)
     : id_(id),
-      x_position_(x_position),
-      y_position_(y_position),
+      position_(position),
+      smoke_timer_(domain::config::smoke::kSmokeDuration),
       size_(size) {}
 
 SmokeId Smoke::GetId() const {
     return id_;
 }
 
+Position Smoke::GetPosition() const {
+    return position_;
+}
+
 uint32_t Smoke::GetX() const {
-    return x_position_;
+    return position_.x;
 }
 
 uint32_t Smoke::GetY() const {
-    return y_position_;
+    return position_.y;
 }
 
 uint32_t Smoke::GetSize() const {

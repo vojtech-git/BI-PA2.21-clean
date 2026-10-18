@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "domain/common/entity_id.hpp"
+#include "domain/common/position.hpp"
 
 enum class BonusType {
     Freeze,
@@ -12,18 +13,16 @@ enum class BonusType {
 
 class Bonus {
 public:
-    Bonus(BonusId id, uint32_t x_position, uint32_t y_position, BonusType type);
+    Bonus(BonusId id, Position position, BonusType type);
 
     BonusId GetId() const;
+    Position GetPosition() const;
     uint32_t GetX() const;
     uint32_t GetY() const;
     BonusType GetType() const;
 
 private:
     BonusId id_;
-    uint32_t x_position_;
-    uint32_t y_position_;
+    Position position_;
     BonusType type_;
 };
-
-
