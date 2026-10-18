@@ -1,0 +1,16 @@
+flameChance 1
+frozenChance 1
+levitationChance 0
+delayChance 1
+healthChance 0
+map 9 13
+#############
+#  ========= #
+# #=#=#=#=# #
+#===========#
+# #=#=D=#=# #
+#===========#
+# #=#=#=#=# #
+# =========  #
+#############
+1 1 Miner w a s d

@@ -1,0 +1,18 @@
+flameChance 1
+frozenChance 0
+levitationChance 1
+delayChance 0
+healthChance 1
+map 11 17
+#################
+#  ===#  G#==   #
+# #=# # # # # # #
+#=   G#=   =#  =#
+# ### # ### # # #
+#   #   =D= #   #
+# # # ### # ### #
+#=  #=   #G  == #
+# # # # # # #=# #
+#   ==#G  #===  #
+#################
+1 1 PacMan w a s d
