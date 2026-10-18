@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdint>
 #include "domain/common/entity_id.hpp"
+#include "domain/bonuses/bonus.hpp" // or include the standalone BonusType header
 
 class Player {
 public:
@@ -23,11 +24,8 @@ public:
     void UpdateInvulnerability(float dt);
     bool IsInvulnerable() const;
 
-    void AddHealth(int amount);
-    void AddExplosionSize();
-    void ReduceBombCooldown(float amount);
-    void Freeze(float duration);
-    void Levitate(float duration);
+    void ApplyBonus(BonusType type);
+
     bool IsFrozen() const;
     bool IsLevitating() const;
 

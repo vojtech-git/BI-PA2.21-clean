@@ -82,30 +82,30 @@ bool Player::IsInvulnerable() const {
     return invulnerability_timer_ > 0.0f;
 }
 
-void Player::AddHealth(int amount) {
-    health_ += amount;
-}
-
-void Player::AddExplosionSize() {
-    explosion_size_ += 1;
-}
-
-void Player::ReduceBombCooldown(float amount) {
-    bomb_cooldown_ = std::max(0.5f, bomb_cooldown_ - amount);
-}
-
-void Player::Freeze(float duration) {
-    frozen_timer_ = duration;
-}
-
-void Player::Levitate(float duration) {
-    levitation_timer_ = duration;
-}
-
 bool Player::IsFrozen() const {
     return frozen_timer_ > 0.0f;
 }
 
 bool Player::IsLevitating() const {
     return levitation_timer_ > 0.0f;
+}
+
+void Player::ApplyBonus(BonusType type) {
+    switch (type) {
+        case BonusType::FlameLength:
+            explosion_size_ += 1;
+            break;
+        case BonusType::BombCooldown:
+            bomb_cooldown_ = std::max(0.5f, bomb_cooldown_ - 0.3f);
+            break;
+        case BonusType::Health:
+            health_ += 1;
+            break;
+        case BonusType::Freeze:
+            frozen_timer_ = 3.0f;
+            break;
+        case BonusType::Levitation:
+            levitation_timer_ = 5.0f;
+            break;
+    }
 }
