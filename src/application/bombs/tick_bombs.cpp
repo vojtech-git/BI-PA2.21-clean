@@ -1,143 +1,126 @@
-#include "tick_bombs.hpp"
-#include <cstdlib>
+#include "application/bombs/tick_bombs.hpp"
+
+#include <vector>
+#include "domain/bombs/explosion_service.hpp"
+#include "domain/bonuses/bonus_spawner_service.hpp"
+#include "domain/common/game_constants.hpp"
 
 TickBombs::TickBombs(
-    BombStore &bomb_store,
-    MapStore &map_store,
-    WallStore &wall_store,
-    PlayerStore &player_store,
-    GhostStore &ghost_store,
-    DoorStore &door_store,
-    SmokeStore &smoke_store,
-    BonusStore &bonus_store,
+    BombRepository &bomb_repo,
+    BoardRepository &board_repo,
+    WallRepository &wall_repo,
+    PlayerRepository &player_repo,
+    GhostRepository &ghost_repo,
+    DoorRepository &door_repo,
+    SmokeRepository &smoke_repo,
+    BonusRepository &bonus_repo,
+    IdGeneratorService &id_generator,
     BombPresenter &presenter,
-    BonusPresenter &bonus_presenter,
     GameWinPresenter &win_presenter
-) : bomb_store_(bomb_store),
-    map_store_(map_store),
-    wall_store_(wall_store),
-    player_store_(player_store),
-    ghost_store_(ghost_store),
-    door_store_(door_store),
-    smoke_store_(smoke_store),
-    bonus_store_(bonus_store),
+) : bomb_repo_(bomb_repo),
+    board_repo_(board_repo),
+    wall_repo_(wall_repo),
+    player_repo_(player_repo),
+    ghost_repo_(ghost_repo),
+    door_repo_(door_repo),
+    smoke_repo_(smoke_repo),
+    bonus_repo_(bonus_repo),
+    id_generator_(id_generator),
     presenter_(presenter),
-    bonus_presenter_(bonus_presenter),
     win_presenter_(win_presenter) {}
 
 void TickBombs::Execute(float dt) {
-    auto &bombs = bomb_store_.GetAllMutable();
-    if (bombs.empty()) return;
-
-    for (size_t i = bombs.size(); i > 0; --i) {
-        size_t idx = i - 1;
-        bombs[idx].UpdateDetonationTimer(dt);
-
-        if (bombs[idx].GetDetonationTimer() <= 0.0f) {
-            Explode(idx);
-        }
+    auto board_opt = board_repo_.Get();
+    if (!board_opt.has_value()) {
+        return;
     }
-}
 
-void TickBombs::CheckDamageTile(size_t x, size_t y) {
-    auto &players = player_store_.GetAllMutable();
-    for (size_t i = 0; i < players.size(); ++i) {
-        auto &p = players[i];
-        if (p.IsDead()) continue;
+    auto bombs = bomb_repo_.GetAll();
+    if (bombs.empty()) {
+        return;
+    }
 
-        if (p.GetX() == x && p.GetY() == y) {
-            p.TakeDamage(1);
-            int player_id = static_cast<int>(i);
+    std::vector<Bomb> exploding_bombs;
 
-            if (p.IsDead()) {
-                presenter_.PresentPlayerDied(player_id, x, y);
-            } else {
-                presenter_.PresentPlayerDamaged(player_id, p.GetHealth());
-            }
+    for (auto &bomb : bombs) {
+        bomb.UpdateDetonationTimer(dt);
+        if (bomb.GetDetonationTimer() <= 0.0f) {
+            exploding_bombs.push_back(bomb);
+        } else {
+            bomb_repo_.Save(bomb);
         }
     }
 
-    while (ghost_store_.RemoveAt(x, y)) {
-        presenter_.PresentGhostDied(x, y);
+    for (const auto &bomb : exploding_bombs) {
+        Explode(bomb, *board_opt);
     }
 }
 
-void TickBombs::CheckDoorReveal(size_t x, size_t y) {
-    auto door = door_store_.Get();
-    if (door.has_value() && !door->IsRevealed()) {
-        if (door->GetX() == x && door->GetY() == y) {
-            door->Reveal();
-            door_store_.Set(*door);
-            win_presenter_.PresentDoorRevealed(x, y);
-        }
-    }
-}
-
-void TickBombs::Explode(size_t bomb_index) {
-    Bomb bomb = bomb_store_.GetAll()[bomb_index];
-    bomb_store_.Remove(bomb_index);
+void TickBombs::Explode(const Bomb &bomb, const Board &board) {
+    bomb_repo_.DeleteById(bomb.GetId());
     presenter_.PresentBombExploded(bomb.GetX(), bomb.GetY());
 
-    smoke_store_.Add(Smoke(bomb.GetX(), bomb.GetY(), 1));
-    presenter_.PresentSmokePlaced(bomb.GetX(), bomb.GetY());
-    CheckDamageTile(bomb.GetX(), bomb.GetY());
+    ExplosionOutcome outcome = ExplosionDomainService::ProcessExplosion(
+        bomb,
+        board,
+        wall_repo_.GetAll(),
+        player_repo_.GetAll(),
+        ghost_repo_.GetAll()
+    );
 
-    const int dx[] = {0, 0, -1, 1};
-    const int dy[] = {-1, 1, 0, 0};
+    // 1. Destroy walls, check doors and spawn bonuses
+    for (const auto &wall_pos : outcome.destroyed_wall_tiles) {
+        wall_repo_.DeleteAt(wall_pos.x, wall_pos.y);
+        presenter_.PresentWallDestroyed(wall_pos.x, wall_pos.y);
+        CheckDoorReveal(wall_pos);
+        TrySpawnBonus(wall_pos, board);
+    }
 
-    Map map = map_store_.Get();
+    // 2. Spawn and present smoke
+    for (const auto &smoke_pos : outcome.smoke_tiles) {
+        SmokeId smoke_id = id_generator_.Next<SmokeId>();
+        smoke_repo_.Save(Smoke(smoke_id, smoke_pos, 1));
+        presenter_.PresentSmokePlaced(smoke_pos.x, smoke_pos.y);
+    }
 
-    for (int dir = 0; dir < 4; ++dir) {
-        for (size_t step = 1; step <= bomb.GetExplosionSize(); ++step) {
-            long long target_x = static_cast<long long>(bomb.GetX()) + dx[dir] * step;
-            long long target_y = static_cast<long long>(bomb.GetY()) + dy[dir] * step;
+    // 3. Persist and present affected player damage
+    for (const auto &player : outcome.affected_players) {
+        player_repo_.Save(player);
+        int player_id = static_cast<int>(player.GetId().GetValue());
 
-            if (target_x < 0 || target_x >= static_cast<long long>(map.GetWidth()) ||
-                target_y < 0 || target_y >= static_cast<long long>(map.GetHeight())) {
-                break;
-            }
+        if (player.IsDead()) {
+            presenter_.PresentPlayerDied(player_id, player.GetX(), player.GetY());
+        } else {
+            presenter_.PresentPlayerDamaged(player_id, player.GetHealth());
+        }
+    }
 
-            size_t tx = static_cast<size_t>(target_x);
-            size_t ty = static_cast<size_t>(target_y);
-
-            const Wall *wall = wall_store_.GetAt(tx, ty);
-            if (wall) {
-                if (wall->GetType() == WallType::Hard) {
-                    break;
-                } else {
-                    wall_store_.RemoveAt(tx, ty);
-                    presenter_.PresentWallDestroyed(tx, ty);
-                    CheckDoorReveal(tx, ty);
-                    TrySpawnBonus(tx, ty);
-                    smoke_store_.Add(Smoke(tx, ty, 1));
-                    presenter_.PresentSmokePlaced(tx, ty);
-                    CheckDamageTile(tx, ty);
-                    break;
-                }
-            }
-
-            smoke_store_.Add(Smoke(tx, ty, 1));
-            presenter_.PresentSmokePlaced(tx, ty);
-            CheckDamageTile(tx, ty);
+    // 4. Remove and present killed ghosts
+    for (const auto &ghost_id : outcome.killed_ghost_ids) {
+        auto ghost = ghost_repo_.GetById(ghost_id);
+        if (ghost.has_value()) {
+            ghost_repo_.DeleteById(ghost_id);
+            presenter_.PresentGhostDied(ghost->GetX(), ghost->GetY());
         }
     }
 }
 
-void TickBombs::TrySpawnBonus(size_t x, size_t y) {
-    const auto &chances = map_store_.GetBonusChances();
-    std::vector<BonusType> available_types;
+void TickBombs::TrySpawnBonus(Position pos, const Board &board) {
+    auto rolled_bonus = BonusSpawnerService::RollBonus(board);
+    if (!rolled_bonus.has_value()) {
+        return;
+    }
 
-    if (chances.flame)      available_types.push_back(BonusType::FlameLength);
-    if (chances.delay)      available_types.push_back(BonusType::BombCooldown);
-    if (chances.health)     available_types.push_back(BonusType::Health);
-    if (chances.frozen)     available_types.push_back(BonusType::Freeze);
-    if (chances.levitation) available_types.push_back(BonusType::Levitation);
+    BonusId bonus_id = id_generator_.Next<BonusId>();
+    bonus_repo_.Save(Bonus(bonus_id, pos, *rolled_bonus));
+    presenter_.PresentBonusSpawned(pos.x, pos.y);
+}
 
-    if (available_types.empty()) return;
-
-    if (std::rand() % 2 == 0) {
-        BonusType picked = available_types[static_cast<size_t>(std::rand()) % available_types.size()];
-        bonus_store_.Add(Bonus(x, y, picked));
-        bonus_presenter_.PresentBonusSpawned(x, y);
+void TickBombs::CheckDoorReveal(Position pos) {
+    auto door = door_repo_.Get();
+    if (door.has_value() && !door->IsRevealed() && door->GetPosition() == pos) {
+        door->Reveal();
+        door_repo_.Save(*door);
+        win_presenter_.PresentDoorRevealed(pos.x, pos.y);
     }
 }

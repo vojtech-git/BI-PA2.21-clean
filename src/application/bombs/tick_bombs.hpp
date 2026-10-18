@@ -1,50 +1,50 @@
 #pragma once
-#include <cstddef>
-#include <vector>
-#include "application/bombs/bomb_store.hpp"
-#include "application/maps/map_store.hpp"
-#include "application/walls/wall_store.hpp"
-#include "application/players/player_store.hpp"
-#include "application/ghosts/ghost_store.hpp"
-#include "application/doors/door_store.hpp"
-#include "application/smokes/smoke_store.hpp"
+
+#include "application/boards/board_repository.hpp"
 #include "application/bombs/bomb_presenter.hpp"
-#include "application/bonuses/bonus_store.hpp"
-#include "application/bonuses/bonus_presenter.hpp"
+#include "application/bombs/bomb_repository.hpp"
+#include "application/bonuses/bonus_repository.hpp"
+#include "application/common/id_generator_service.hpp"
+#include "application/doors/door_repository.hpp"
 #include "application/doors/game_win_presenter.hpp"
+#include "application/ghosts/ghost_repository.hpp"
+#include "application/players/player_repository.hpp"
+#include "application/smokes/smoke_repository.hpp"
+#include "application/walls/wall_repository.hpp"
+#include "domain/bombs/bomb.hpp"
 
 class TickBombs {
 public:
     TickBombs(
-        BombStore &bomb_store,
-        MapStore &map_store,
-        WallStore &wall_store,
-        PlayerStore &player_store,
-        GhostStore &ghost_store,
-        DoorStore &door_store,
-        SmokeStore &smoke_store,
-        BonusStore &bonus_store,
+        BombRepository &bomb_repo,
+        BoardRepository &board_repo,
+        WallRepository &wall_repo,
+        PlayerRepository &player_repo,
+        GhostRepository &ghost_repo,
+        DoorRepository &door_repo,
+        SmokeRepository &smoke_repo,
+        BonusRepository &bonus_repo,
+        IdGeneratorService &id_generator,
         BombPresenter &presenter,
-        BonusPresenter &bonus_presenter,
         GameWinPresenter &win_presenter
     );
+
     void Execute(float dt);
 
 private:
-    void Explode(size_t bomb_index);
-    void CheckDamageTile(size_t x, size_t y);
-    void TrySpawnBonus(size_t x, size_t y);
-    void CheckDoorReveal(size_t x, size_t y);
+    void Explode(const Bomb &bomb, const Board &board);
+    void TrySpawnBonus(Position pos, const Board &board);
+    void CheckDoorReveal(Position pos);
 
-    BombStore &bomb_store_;
-    MapStore &map_store_;
-    WallStore &wall_store_;
-    PlayerStore &player_store_;
-    GhostStore &ghost_store_;
-    DoorStore &door_store_;
-    SmokeStore &smoke_store_;
-    BonusStore &bonus_store_;
+    BombRepository &bomb_repo_;
+    BoardRepository &board_repo_;
+    WallRepository &wall_repo_;
+    PlayerRepository &player_repo_;
+    GhostRepository &ghost_repo_;
+    DoorRepository &door_repo_;
+    SmokeRepository &smoke_repo_;
+    BonusRepository &bonus_repo_;
+    IdGeneratorService &id_generator_;
     BombPresenter &presenter_;
-    BonusPresenter &bonus_presenter_;
     GameWinPresenter &win_presenter_;
 };

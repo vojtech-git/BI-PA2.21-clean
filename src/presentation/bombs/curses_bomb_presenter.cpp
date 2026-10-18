@@ -1,4 +1,4 @@
-#include "curses_bomb_presenter.hpp"
+#include "presentation/bombs/curses_bomb_presenter.hpp"
 
 CursesBombPresenter::CursesBombPresenter(BoardView &board_view, HudView &hud_view)
     : board_view_(board_view), hud_view_(hud_view) {}
@@ -34,4 +34,8 @@ void CursesBombPresenter::PresentPlayerDied(int player_id, size_t x, size_t y) {
 
 void CursesBombPresenter::PresentGhostDied(size_t x, size_t y) {
     board_view_.RemoveEntity(x, y, EntityVisualLayer::Ghost);
+}
+
+void CursesBombPresenter::PresentBonusSpawned(size_t x, size_t y) {
+    board_view_.AddEntity(x, y, EntityVisualLayer::Bonus);
 }
