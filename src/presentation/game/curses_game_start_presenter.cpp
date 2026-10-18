@@ -58,7 +58,7 @@ void CursesGameStartPresenter::PresentGameStart(
             player_id,
             p.GetHealth(),
             p.GetExplosionSize(),
-            p.GetBombCooldown(),
+            p.GetMaxBombCooldown(),
             p.IsFrozen(),
             p.IsLevitating()
         );

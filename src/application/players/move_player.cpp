@@ -63,7 +63,7 @@ void MovePlayer::Execute(PlayerId player_id, int dx, int dy) {
             player.GetId().GetValue(),
             player.GetHealth(),
             player.GetExplosionSize(),
-            player.GetBombCooldown(),
+            player.GetMaxBombCooldown(),
             player.IsFrozen(),
             player.IsLevitating()
         );
