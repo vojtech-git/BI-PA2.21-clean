@@ -1,61 +1,74 @@
-#include "move_player.hpp"
+#include "application/players/move_player.hpp"
+#include "domain/collision/collision_service.hpp"
 
 MovePlayer::MovePlayer(
-    PlayerStore &player_store,
-    MapStore &map_store,
-    WallStore &wall_store,
-    BombStore &bomb_store,
-    CollectBonuses &collect_bonuses,
+    PlayerRepository &player_repo,
+    BoardRepository &board_repo,
+    WallRepository &wall_repo,
+    BombRepository &bomb_repo,
+    BonusRepository &bonus_repo,
     PlayerPresenter &presenter
-) : player_store_(player_store),
-    map_store_(map_store),
-    wall_store_(wall_store),
-    bomb_store_(bomb_store),
-    collect_bonuses_(collect_bonuses),
+) : player_repo_(player_repo),
+    board_repo_(board_repo),
+    wall_repo_(wall_repo),
+    bomb_repo_(bomb_repo),
+    bonus_repo_(bonus_repo),
     presenter_(presenter) {}
 
-void MovePlayer::Execute(int player_id, int dx, int dy) {
-    Player *player = player_store_.GetById(player_id);
-    if (!player || player->IsDead() || player->isFrozen()) {
+void MovePlayer::Execute(PlayerId player_id, int dx, int dy) {
+    auto player_opt = player_repo_.GetById(player_id);
+    if (!player_opt.has_value()) {
         return;
     }
 
-    size_t old_x = player->GetX();
-    size_t old_y = player->GetY();
-    long long target_x = static_cast<long long>(old_x) + dx;
-    long long target_y = static_cast<long long>(old_y) + dy;
-
-    Map map = map_store_.Get();
-    if (target_x < 0 || target_x >= static_cast<long long>(map.GetWidth()) ||
-        target_y < 0 || target_y >= static_cast<long long>(map.GetHeight())) {
+    Player player = *player_opt;
+    if (player.IsDead() || player.IsFrozen()) {
         return;
     }
 
-    size_t next_x = static_cast<size_t>(target_x);
-    size_t next_y = static_cast<size_t>(target_y);
-
-    if (IsTileBlocked(next_x, next_y, player->isLevitating())) {
+    auto board_opt = board_repo_.Get();
+    if (!board_opt.has_value()) {
         return;
     }
 
-    player->Move(next_x, next_y);
-    presenter_.PresentPlayerMoved(old_x, old_y, next_x, next_y);
+    long long target_x = static_cast<long long>(player.GetX()) + dx;
+    long long target_y = static_cast<long long>(player.GetY()) + dy;
 
-    collect_bonuses_.Execute(player_id);
-}
+    if (target_x < 0 || target_y < 0) {
+        return;
+    }
 
-bool MovePlayer::IsTileBlocked(size_t x, size_t y, bool is_levitating) const {
-    for (const auto &wall : wall_store_.GetAll()) {
-        if (wall.GetX() == x && wall.GetY() == y) {
-            if (wall.GetType() == WallType::Hard || !is_levitating) {
-                return true;
-            }
-        }
+    Position target_pos{static_cast<uint32_t>(target_x), static_cast<uint32_t>(target_y)};
+
+    if (CollisionService::IsTileBlockedForPlayer(
+            target_pos,
+            *board_opt,
+            wall_repo_.GetAll(),
+            bomb_repo_.GetAll(),
+            player.IsLevitating()
+        )) {
+        return;
     }
-    for (const auto &bomb : bomb_store_.GetAll()) {
-        if (bomb.GetX() == x && bomb.GetY() == y) {
-            return true;
-        }
+
+    uint32_t old_x = player.GetX();
+    uint32_t old_y = player.GetY();
+
+    player.Move(target_pos);
+
+    auto collected_bonus = bonus_repo_.RemoveAt(target_pos.x, target_pos.y);
+    if (collected_bonus.has_value()) {
+        player.ApplyBonus(collected_bonus->GetType());
+        presenter_.PresentBonusCollected(target_pos.x, target_pos.y);
+        presenter_.PresentPlayerStatsUpdated(
+            player.GetId().GetValue(),
+            player.GetHealth(),
+            player.GetExplosionSize(),
+            player.GetBombCooldown(),
+            player.IsFrozen(),
+            player.IsLevitating()
+        );
     }
-    return false;
+
+    player_repo_.Save(player);
+    presenter_.PresentPlayerMoved(old_x, old_y, target_pos.x, target_pos.y);
 }

@@ -1,29 +1,31 @@
 #pragma once
-#include "player_store.hpp"
-#include "player_presenter.hpp"
-#include "application/maps/map_store.hpp"
-#include "application/walls/wall_store.hpp"
-#include "application/bombs/bomb_store.hpp"
-#include "application/bonuses/collect_bonuses.hpp"
+
+#include "application/boards/board_repository.hpp"
+#include "application/bombs/bomb_repository.hpp"
+#include "application/bonuses/bonus_repository.hpp"
+#include "application/players/player_presenter.hpp"
+#include "application/players/player_repository.hpp"
+#include "application/walls/wall_repository.hpp"
+#include "domain/common/entity_id.hpp"
 
 class MovePlayer {
 public:
     MovePlayer(
-        PlayerStore &player_store,
-        MapStore &map_store,
-        WallStore &wall_store,
-        BombStore &bomb_store,
-        CollectBonuses &collect_bonuses,
+        PlayerRepository &player_repo,
+        BoardRepository &board_repo,
+        WallRepository &wall_repo,
+        BombRepository &bomb_repo,
+        BonusRepository &bonus_repo,
         PlayerPresenter &presenter
     );
-    void Execute(int player_id, int dx, int dy);
+
+    void Execute(PlayerId player_id, int dx, int dy);
 
 private:
-    bool IsTileBlocked(size_t x, size_t y, bool is_levitating) const;
-    PlayerStore &player_store_;
-    MapStore &map_store_;
-    WallStore &wall_store_;
-    BombStore &bomb_store_;
-    CollectBonuses &collect_bonuses_;
+    PlayerRepository &player_repo_;
+    BoardRepository &board_repo_;
+    WallRepository &wall_repo_;
+    BombRepository &bomb_repo_;
+    BonusRepository &bonus_repo_;
     PlayerPresenter &presenter_;
 };
