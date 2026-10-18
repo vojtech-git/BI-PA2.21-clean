@@ -1,30 +1,31 @@
-#include "check_ghost_collision.hpp"
+#include "application/ghosts/check_ghost_collision.hpp"
 
 CheckGhostCollision::CheckGhostCollision(
-    PlayerStore &player_store,
-    GhostStore &ghost_store,
+    PlayerRepository &player_repo,
+    GhostRepository &ghost_repo,
     GhostCollisionPresenter &presenter
-) : player_store_(player_store),
-    ghost_store_(ghost_store),
+) : player_repo_(player_repo),
+    ghost_repo_(ghost_repo),
     presenter_(presenter) {}
 
 void CheckGhostCollision::Execute() {
-    auto &players = player_store_.GetAllMutable();
-    const auto &ghosts = ghost_store_.GetAll();
+    auto players = player_repo_.GetAll();
+    const auto ghosts = ghost_repo_.GetAll();
 
-    for (size_t i = 0; i < players.size(); ++i) {
-        auto &player = players[i];
-        if (player.IsDead()) continue;
+    for (auto &player : players) {
+        if (player.IsDead()) {
+            continue;
+        }
 
         for (const auto &ghost : ghosts) {
-            if (player.GetX() == ghost.GetX() && player.GetY() == ghost.GetY()) {
+            if (player.GetPosition() == ghost.GetPosition()) {
                 player.TakeDamage(1);
-                int player_id = static_cast<int>(i);
+                player_repo_.Save(player);
 
                 if (player.IsDead()) {
-                    presenter_.PresentPlayerDied(player_id, player.GetX(), player.GetY());
+                    presenter_.PresentPlayerDied(player.GetId(), player.GetX(), player.GetY());
                 } else {
-                    presenter_.PresentPlayerDamaged(player_id, player.GetHealth());
+                    presenter_.PresentPlayerDamaged(player.GetId(), player.GetHealth());
                 }
                 break;
             }
