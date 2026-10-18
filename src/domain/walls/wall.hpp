@@ -11,10 +11,10 @@ class Wall {
 public:
     Wall(WallId id, uint32_t x_position, uint32_t y_position, WallType type);
 
-    WallId GetId() const { return id_; }
-    uint32_t GetX() const { return x_position_; }
-    uint32_t GetY() const { return y_position_; }
-    WallType GetType() const { return type_; }
+    WallId GetId() const;
+    uint32_t GetX() const;
+    uint32_t GetY() const;
+    WallType GetType() const;
 
 private:
     WallId id_;

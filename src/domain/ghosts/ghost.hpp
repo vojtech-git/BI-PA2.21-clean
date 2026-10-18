@@ -6,9 +6,9 @@ class Ghost {
 public:
     Ghost(GhostId id, uint32_t x_position, uint32_t y_position);
 
-    GhostId GetId() const { return id_; }
-    uint32_t GetX() const { return x_position_; }
-    uint32_t GetY() const { return y_position_; }
+    GhostId GetId() const;
+    uint32_t GetX() const;
+    uint32_t GetY() const;
 
     void Update(float dt);
     bool CanMove() const;

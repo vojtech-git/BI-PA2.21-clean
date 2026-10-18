@@ -5,6 +5,18 @@ Ghost::Ghost(GhostId id, uint32_t x_position, uint32_t y_position)
       x_position_(x_position),
       y_position_(y_position) {}
 
+GhostId Ghost::GetId() const {
+    return id_;
+}
+
+uint32_t Ghost::GetX() const {
+    return x_position_;
+}
+
+uint32_t Ghost::GetY() const {
+    return y_position_;
+}
+
 void Ghost::Update(float dt) {
     movement_timer_ -= dt;
 }

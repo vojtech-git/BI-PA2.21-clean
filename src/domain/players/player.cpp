@@ -1,5 +1,6 @@
 #include "domain/players/player.hpp"
 #include <algorithm>
+#include <utility>
 
 Player::Player(PlayerId id, std::string name, uint32_t x_position, uint32_t y_position, int health)
     : id_(id),
@@ -8,8 +9,36 @@ Player::Player(PlayerId id, std::string name, uint32_t x_position, uint32_t y_po
       y_position_(y_position),
       health_(health) {}
 
+PlayerId Player::GetId() const {
+    return id_;
+}
+
+const std::string& Player::GetName() const {
+    return name_;
+}
+
+uint32_t Player::GetX() const {
+    return x_position_;
+}
+
+uint32_t Player::GetY() const {
+    return y_position_;
+}
+
+int Player::GetHealth() const {
+    return health_;
+}
+
+uint32_t Player::GetExplosionSize() const {
+    return explosion_size_;
+}
+
+float Player::GetBombCooldown() const {
+    return bomb_cooldown_;
+}
+
 void Player::Move(uint32_t new_x, uint32_t new_y) {
-    if (isFrozen()) {
+    if (IsFrozen()) {
         return;
     }
     x_position_ = new_x;
@@ -73,10 +102,10 @@ void Player::Levitate(float duration) {
     levitation_timer_ = duration;
 }
 
-bool Player::isFrozen() const {
+bool Player::IsFrozen() const {
     return frozen_timer_ > 0.0f;
 }
 
-bool Player::isLevitating() const {
+bool Player::IsLevitating() const {
     return levitation_timer_ > 0.0f;
 }

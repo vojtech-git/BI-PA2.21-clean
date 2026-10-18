@@ -7,13 +7,13 @@ class Player {
 public:
     Player(PlayerId id, std::string name, uint32_t x_position, uint32_t y_position, int health);
 
-    PlayerId GetId() const { return id_; }
-    const std::string& GetName() const { return name_; }
-    uint32_t GetX() const { return x_position_; }
-    uint32_t GetY() const { return y_position_; }
-    int GetHealth() const { return health_; }
-    uint32_t GetExplosionSize() const { return explosion_size_; }
-    float GetBombCooldown() const { return bomb_cooldown_; }
+    PlayerId GetId() const;
+    const std::string& GetName() const;
+    uint32_t GetX() const;
+    uint32_t GetY() const;
+    int GetHealth() const;
+    uint32_t GetExplosionSize() const;
+    float GetBombCooldown() const;
 
     void Move(uint32_t new_x, uint32_t new_y);
     void TakeDamage(int damage);
@@ -28,8 +28,8 @@ public:
     void ReduceBombCooldown(float amount);
     void Freeze(float duration);
     void Levitate(float duration);
-    bool isFrozen() const;
-    bool isLevitating() const;
+    bool IsFrozen() const;
+    bool IsLevitating() const;
 
 private:
     PlayerId id_;

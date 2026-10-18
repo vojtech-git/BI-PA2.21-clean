@@ -6,11 +6,11 @@ class Smoke {
 public:
     Smoke(SmokeId id, uint32_t x_position, uint32_t y_position, uint32_t size);
 
-    SmokeId GetId() const { return id_; }
-    uint32_t GetX() const { return x_position_; }
-    uint32_t GetY() const { return y_position_; }
-    uint32_t GetSize() const { return size_; }
-    bool IsExpired() const { return smoke_timer_ <= 0.0f; }
+    SmokeId GetId() const;
+    uint32_t GetX() const;
+    uint32_t GetY() const;
+    uint32_t GetSize() const;
+    bool IsExpired() const;
 
     void Update(float dt);
 
