@@ -12,6 +12,6 @@ uint32_t Map::GetHeight() const {
     return height_;
 }
 
-bool Map::IsInBounds(uint32_t x, uint32_t y) const {
-    return x < width_ && y < height_;
+bool Map::IsInBounds(Position position) const {
+    return position.x < width_ && position.y < height_;
 }
